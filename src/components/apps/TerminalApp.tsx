@@ -80,7 +80,7 @@ export const TerminalApp: React.FC = () => {
     const cmd = parts[0];
     const arg = parts[1];
 
-    let outputLines: TerminalLine[] = [];
+    let outputLines: TerminalLine[];
 
     switch (cmd) {
       case 'help':
@@ -202,7 +202,7 @@ export const TerminalApp: React.FC = () => {
       {/* Scrollable history logs */}
       <div ref={containerRef} className="flex-1 overflow-y-auto flex flex-col gap-1 pr-1">
         {history.map((line, idx) => {
-          let styleClass = '';
+          let styleClass: string;
           if (line.type === 'header') {
             styleClass = 'font-bold opacity-80 border-b border-white/5 pb-2 mb-2';
           } else if (line.type === 'error') {

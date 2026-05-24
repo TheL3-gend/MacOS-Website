@@ -2,13 +2,16 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useWindowStore } from '../store/useWindowStore';
 import { ArrowRight, Power, RefreshCw, Moon } from 'lucide-react';
 import gsap from 'gsap';
-import { WallpaperBackground } from './WallpaperBackground';
 
-export const LockScreen: React.FC = () => {
-  const wallpaperId = useWindowStore((state) => state.wallpaperId);
+interface LockScreenProps {
+  onUnlockComplete: () => void;
+}
+
+export const LockScreen: React.FC<LockScreenProps> = ({ onUnlockComplete }) => {
   const unlockSystem = useWindowStore((state) => state.unlockSystem);
   const shutdown = useWindowStore((state) => state.shutdown);
   const restart = useWindowStore((state) => state.restart);
+  const isLocked = useWindowStore((state) => state.isLocked);
 
   const [password, setPassword] = useState('');
   const [time, setTime] = useState(new Date());
@@ -22,29 +25,63 @@ export const LockScreen: React.FC = () => {
     return () => clearInterval(timer);
   }, []);
 
+  // Handle slide-up animation when unlocked
+  useEffect(() => {
+    if (!isLocked) {
+      const ctx = gsap.context(() => {
+        // Date & Time scales up and fades out
+        gsap.to(contentRef.current, {
+          y: -100,
+          opacity: 0,
+          duration: 0.6,
+          ease: 'power2.in',
+        });
+        
+        // Slide up the entire lock screen container
+        gsap.to(lockRef.current, {
+          y: '-100%',
+          duration: 0.85,
+          ease: 'power3.inOut',
+          onComplete: () => {
+            setIsSubmitting(false);
+            onUnlockComplete();
+          },
+        });
+      }, lockRef);
+      return () => ctx.revert();
+    }
+  }, [isLocked, onUnlockComplete]);
+
+  // Handle entry animation when locked
+  useEffect(() => {
+    if (isLocked) {
+      const ctx = gsap.context(() => {
+        gsap.set(lockRef.current, { y: '0%', opacity: 0 });
+        gsap.set(contentRef.current, { opacity: 0, scale: 0.95 });
+        
+        gsap.to(lockRef.current, {
+          opacity: 1,
+          duration: 0.5,
+          ease: 'power2.out',
+        });
+        gsap.to(contentRef.current, {
+          opacity: 1,
+          scale: 1,
+          duration: 0.6,
+          delay: 0.1,
+          ease: 'power2.out',
+        });
+      }, lockRef);
+      return () => ctx.revert();
+    }
+  }, [isLocked]);
+
   const handleLogin = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (isSubmitting) return;
 
     setIsSubmitting(true);
-    
-    // Smooth GSAP transition to unlock
-    gsap.context(() => {
-      gsap.to(contentRef.current, {
-        scale: 1.1,
-        opacity: 0,
-        duration: 0.4,
-        ease: 'power2.in',
-      });
-      gsap.to(lockRef.current, {
-        opacity: 0,
-        duration: 0.6,
-        ease: 'power2.out',
-        onComplete: () => {
-          unlockSystem();
-        },
-      });
-    }, lockRef);
+    unlockSystem();
   };
 
   const formattedTime = time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
@@ -55,8 +92,6 @@ export const LockScreen: React.FC = () => {
       ref={lockRef}
       className="fixed inset-0 z-40 overflow-hidden flex flex-col justify-between items-center text-white p-12 select-none"
     >
-      {/* Background wallpaper with blur */}
-      <WallpaperBackground wallpaperId={wallpaperId} variant="lock" />
       
       {/* Top Section: Date & Time */}
       <div ref={contentRef} className="w-full flex flex-col items-center mt-12 transition-all">

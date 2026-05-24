@@ -3,23 +3,30 @@ import { WALLPAPERS } from '../store/useWindowStore';
 
 interface WallpaperBackgroundProps {
   wallpaperId: string;
-  variant?: 'desktop' | 'lock';
+  isLocked?: boolean;
 }
 
 export const WallpaperBackground: React.FC<WallpaperBackgroundProps> = ({
   wallpaperId,
-  variant = 'desktop',
+  isLocked = false,
 }) => {
   const wallpaper = WALLPAPERS.find((option) => option.id === wallpaperId) ?? WALLPAPERS[0];
-  const lockScreenClasses = variant === 'lock' ? 'blur-2xl scale-110 saturate-125' : '';
+  const lockScreenClasses = isLocked
+    ? 'blur-2xl scale-110 saturate-125'
+    : 'blur-none scale-100 saturate-100';
+
+  const transitionStyle = {
+    transition: 'filter 1.2s cubic-bezier(0.16, 1, 0.3, 1), transform 1.2s cubic-bezier(0.16, 1, 0.3, 1)',
+  };
 
   if (wallpaper.type === 'video') {
     return (
-      <div className="absolute inset-0 -z-10 overflow-hidden bg-zinc-950">
+      <div className="absolute inset-0 z-0 overflow-hidden bg-zinc-950">
         <video
           key={wallpaper.id}
           src={wallpaper.value}
           className={`h-full w-full object-cover ${lockScreenClasses}`}
+          style={transitionStyle}
           autoPlay
           muted
           loop
@@ -34,7 +41,8 @@ export const WallpaperBackground: React.FC<WallpaperBackgroundProps> = ({
 
   return (
     <div
-      className={`absolute inset-0 -z-10 ${wallpaper.value} ${lockScreenClasses} transition-all duration-700`}
+      className={`absolute inset-0 z-0 ${wallpaper.value} ${lockScreenClasses}`}
+      style={transitionStyle}
     />
   );
 };

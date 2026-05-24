@@ -14,12 +14,21 @@ export const App: React.FC = () => {
   const wallpaperId = useWindowStore((state) => state.wallpaperId);
   const systemBrightness = useWindowStore((state) => state.systemBrightness);
 
+  const [renderLockScreen, setRenderLockScreen] = React.useState(isLocked);
+
+  React.useEffect(() => {
+    if (isLocked) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setRenderLockScreen(true);
+    }
+  }, [isLocked]);
+
+  const handleUnlockComplete = () => {
+    setRenderLockScreen(false);
+  };
+
   if (!isBooted) {
     return <BootScreen />;
-  }
-
-  if (isLocked) {
-    return <LockScreen />;
   }
 
   // Calculate overlay opacity for display brightness simulation
@@ -32,16 +41,48 @@ export const App: React.FC = () => {
       }`}
     >
       {/* Background wallpaper */}
-      <WallpaperBackground wallpaperId={wallpaperId} />
+      <WallpaperBackground wallpaperId={wallpaperId} isLocked={isLocked} />
 
       {/* Top Menu bar navigation */}
-      <MenuBar />
+      <div
+        className={`fixed top-0 left-0 right-0 z-30 ${
+          isLocked ? '-translate-y-full opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'
+        }`}
+        style={{
+          transition: 'transform 1s cubic-bezier(0.16, 1, 0.3, 1), opacity 1s cubic-bezier(0.16, 1, 0.3, 1)',
+        }}
+      >
+        <MenuBar />
+      </div>
 
       {/* Main desktop workspace */}
-      <Desktop />
+      <div
+        className={`relative w-full h-full flex-1 overflow-hidden ${
+          isLocked ? 'scale-95 opacity-0 pointer-events-none' : 'scale-100 opacity-100'
+        }`}
+        style={{
+          transition: 'transform 1.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 1.2s cubic-bezier(0.16, 1, 0.3, 1)',
+        }}
+      >
+        <Desktop />
+      </div>
 
       {/* Dock navigation */}
-      <Dock />
+      <div
+        className={`fixed bottom-0 left-0 right-0 z-30 ${
+          isLocked ? 'translate-y-20 opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'
+        }`}
+        style={{
+          transition: 'transform 1s cubic-bezier(0.16, 1, 0.3, 1), opacity 1s cubic-bezier(0.16, 1, 0.3, 1)',
+        }}
+      >
+        <Dock />
+      </div>
+
+      {/* Lock Screen Overlay */}
+      {renderLockScreen && (
+        <LockScreen onUnlockComplete={handleUnlockComplete} />
+      )}
 
       {/* Brightness Overlay (Simulates screen dimming) */}
       <div
