@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useWindowStore } from '../store/useWindowStore';
 import { ArrowRight, Power, RefreshCw, Moon } from 'lucide-react';
-import gsap from 'gsap';
 
 interface LockScreenProps {
   onUnlockComplete: () => void;
@@ -16,8 +15,8 @@ export const LockScreen: React.FC<LockScreenProps> = ({ onUnlockComplete }) => {
   const [password, setPassword] = useState('');
   const [time, setTime] = useState(new Date());
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const lockRef = useRef<HTMLDivElement>(null);
-  const contentRef = useRef<HTMLDivElement>(null);
+  const [hasEntered, setHasEntered] = useState(false);
+  const unlockDelayRef = useRef<number | null>(null);
 
   // Live clock
   useEffect(() => {
@@ -25,76 +24,70 @@ export const LockScreen: React.FC<LockScreenProps> = ({ onUnlockComplete }) => {
     return () => clearInterval(timer);
   }, []);
 
-  // Handle slide-up animation when unlocked
   useEffect(() => {
-    if (!isLocked) {
-      const ctx = gsap.context(() => {
-        // Date & Time scales up and fades out
-        gsap.to(contentRef.current, {
-          y: -100,
-          opacity: 0,
-          duration: 0.6,
-          ease: 'power2.in',
-        });
-        
-        // Slide up the entire lock screen container
-        gsap.to(lockRef.current, {
-          y: '-100%',
-          duration: 0.85,
-          ease: 'power3.inOut',
-          onComplete: () => {
-            setIsSubmitting(false);
-            onUnlockComplete();
-          },
-        });
-      }, lockRef);
-      return () => ctx.revert();
-    }
-  }, [isLocked, onUnlockComplete]);
+    if (!isLocked) return;
 
-  // Handle entry animation when locked
-  useEffect(() => {
-    if (isLocked) {
-      const ctx = gsap.context(() => {
-        gsap.set(lockRef.current, { y: '0%', opacity: 0 });
-        gsap.set(contentRef.current, { opacity: 0, scale: 0.95 });
-        
-        gsap.to(lockRef.current, {
-          opacity: 1,
-          duration: 0.5,
-          ease: 'power2.out',
-        });
-        gsap.to(contentRef.current, {
-          opacity: 1,
-          scale: 1,
-          duration: 0.6,
-          delay: 0.1,
-          ease: 'power2.out',
-        });
-      }, lockRef);
-      return () => ctx.revert();
-    }
+    const frame = window.requestAnimationFrame(() => setHasEntered(true));
+    return () => window.cancelAnimationFrame(frame);
   }, [isLocked]);
+
+  useEffect(() => {
+    return () => {
+      if (unlockDelayRef.current !== null) {
+        window.clearTimeout(unlockDelayRef.current);
+      }
+    };
+  }, []);
 
   const handleLogin = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    if (isSubmitting) return;
+    if (isSubmitting || !isLocked) return;
 
     setIsSubmitting(true);
-    unlockSystem();
+    unlockDelayRef.current = window.setTimeout(() => {
+      unlockDelayRef.current = null;
+      unlockSystem();
+    }, 180);
+  };
+
+  const handleTransitionEnd = (event: React.TransitionEvent<HTMLDivElement>) => {
+    if (isLocked || event.target !== event.currentTarget || event.propertyName !== 'transform') return;
+
+    setIsSubmitting(false);
+    onUnlockComplete();
   };
 
   const formattedTime = time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
   const formattedDate = time.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' });
+  const contentTransform = isLocked
+    ? hasEntered
+      ? 'translateY(0) scale(1)'
+      : 'translateY(8px) scale(0.96)'
+    : 'translateY(-96px) scale(1.04)';
+  const lockScreenStyle: React.CSSProperties = {
+    opacity: isLocked && hasEntered ? 1 : 0,
+    transform: isLocked ? 'translateY(0)' : 'translateY(-108%)',
+    transition:
+      'transform 1.1s cubic-bezier(0.32, 0.72, 0, 1), opacity 0.8s cubic-bezier(0.32, 0.72, 0, 1)',
+    willChange: 'transform, opacity',
+  };
+  const contentStyle: React.CSSProperties = {
+    opacity: isLocked && hasEntered ? 1 : 0,
+    transform: contentTransform,
+    transition:
+      'transform 0.6s cubic-bezier(0.55, 0.085, 0.68, 0.53), opacity 0.6s cubic-bezier(0.55, 0.085, 0.68, 0.53)',
+    willChange: 'transform, opacity',
+  };
 
   return (
     <div
-      ref={lockRef}
       className="fixed inset-0 z-40 overflow-hidden flex flex-col justify-between items-center text-white p-12 select-none"
+      style={lockScreenStyle}
+      onTransitionEnd={handleTransitionEnd}
     >
       
       {/* Top Section: Date & Time */}
-      <div ref={contentRef} className="w-full flex flex-col items-center mt-12 transition-all">
+      <div className="w-full flex flex-col items-center mt-12" style={contentStyle}>
         <span className="text-sm font-semibold tracking-wider uppercase opacity-80">
           {formattedDate}
         </span>
@@ -127,10 +120,13 @@ export const LockScreen: React.FC<LockScreenProps> = ({ onUnlockComplete }) => {
             onChange={(e) => setPassword(e.target.value)}
             className="w-full h-8 px-3 pr-10 text-xs bg-white/15 backdrop-blur-xl border border-white/25 rounded-full text-white placeholder-white/50 focus:outline-none focus:bg-white/25 focus:ring-1 focus:ring-white/40 shadow-inner"
             autoFocus
+            disabled={isSubmitting}
           />
           <button
             type="submit"
-            className="absolute right-1 w-6 h-6 rounded-full flex items-center justify-center bg-white/20 hover:bg-white/40 active:scale-95 transition-all text-white/80 border border-white/10"
+            disabled={isSubmitting}
+            aria-label="Unlock"
+            className="absolute right-1 w-6 h-6 rounded-full flex items-center justify-center bg-white/20 hover:bg-white/40 active:scale-95 transition-all text-white/80 border border-white/10 disabled:opacity-50 disabled:pointer-events-none"
           >
             <ArrowRight className="w-3.5 h-3.5" />
           </button>

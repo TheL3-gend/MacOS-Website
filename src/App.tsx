@@ -15,6 +15,8 @@ export const App: React.FC = () => {
   const systemBrightness = useWindowStore((state) => state.systemBrightness);
 
   const [renderLockScreen, setRenderLockScreen] = React.useState(isLocked);
+  const isUnlocking = renderLockScreen && !isLocked;
+  const unlockRevealDelay = isUnlocking ? '0.45s' : '0s';
 
   React.useEffect(() => {
     if (isLocked) {
@@ -39,6 +41,7 @@ export const App: React.FC = () => {
       className={`relative w-screen h-screen overflow-hidden flex flex-col font-sans select-none transition-colors duration-300 ${
         isDarkMode ? 'dark bg-zinc-950 text-zinc-100' : 'bg-slate-100 text-zinc-800'
       }`}
+      style={{ height: '100dvh' }}
     >
       {/* Background wallpaper */}
       <WallpaperBackground wallpaperId={wallpaperId} isLocked={isLocked} />
@@ -50,6 +53,7 @@ export const App: React.FC = () => {
         }`}
         style={{
           transition: 'transform 1s cubic-bezier(0.16, 1, 0.3, 1), opacity 1s cubic-bezier(0.16, 1, 0.3, 1)',
+          transitionDelay: unlockRevealDelay,
         }}
       >
         <MenuBar />
@@ -62,6 +66,7 @@ export const App: React.FC = () => {
         }`}
         style={{
           transition: 'transform 1.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 1.2s cubic-bezier(0.16, 1, 0.3, 1)',
+          transitionDelay: unlockRevealDelay,
         }}
       >
         <Desktop />
@@ -74,6 +79,7 @@ export const App: React.FC = () => {
         }`}
         style={{
           transition: 'transform 1s cubic-bezier(0.16, 1, 0.3, 1), opacity 1s cubic-bezier(0.16, 1, 0.3, 1)',
+          transitionDelay: unlockRevealDelay,
         }}
       >
         <Dock />
