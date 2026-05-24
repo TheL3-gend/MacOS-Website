@@ -4,15 +4,15 @@ import { Apple, Wifi, Battery, Sliders } from 'lucide-react';
 import { ControlCenter } from './ControlCenter';
 
 export const MenuBar: React.FC = () => {
-  const {
-    activeWindow,
-    windows,
-    wifiOn,
-    lockSystem,
-    shutdown,
-    restart,
-    openWindow,
-  } = useWindowStore();
+  const activeAppTitle = useWindowStore((state) => {
+    if (!state.activeWindow) return 'Finder';
+    return state.windows[state.activeWindow]?.title || 'Finder';
+  });
+  const wifiOn = useWindowStore((state) => state.wifiOn);
+  const lockSystem = useWindowStore((state) => state.lockSystem);
+  const shutdown = useWindowStore((state) => state.shutdown);
+  const restart = useWindowStore((state) => state.restart);
+  const openWindow = useWindowStore((state) => state.openWindow);
 
   const [time, setTime] = useState(new Date());
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
@@ -39,11 +39,6 @@ export const MenuBar: React.FC = () => {
     setActiveDropdown((prev) => (prev === dropdownName ? null : dropdownName));
   };
 
-  const getActiveAppTitle = () => {
-    if (!activeWindow) return 'Finder';
-    return windows[activeWindow]?.title || 'Finder';
-  };
-
   const formattedTime = time.toLocaleTimeString([], {
     hour: '2-digit',
     minute: '2-digit',
@@ -65,7 +60,7 @@ export const MenuBar: React.FC = () => {
     Notes: ['File', 'Edit', 'Format', 'View', 'Window', 'Help'],
   };
 
-  const currentMenus = appMenus[getActiveAppTitle()] || ['File', 'Edit', 'View', 'Window', 'Help'];
+  const currentMenus = appMenus[activeAppTitle] || ['File', 'Edit', 'View', 'Window', 'Help'];
 
   return (
     <div
@@ -147,7 +142,7 @@ export const MenuBar: React.FC = () => {
         </div>
 
         {/* Active Application Name */}
-        <span className="font-bold cursor-default px-1">{getActiveAppTitle()}</span>
+        <span className="font-bold cursor-default px-1">{activeAppTitle}</span>
 
         {/* Application Specific Menus */}
         <div className="hidden md:flex items-center gap-1">

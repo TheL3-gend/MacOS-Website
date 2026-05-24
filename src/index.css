@@ -2,6 +2,7 @@
 @import "tailwindcss";
 
 @layer base {
+  html,
   body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     overflow: hidden;
@@ -16,6 +17,170 @@
   code, pre {
     font-family: 'Fira Code', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   }
+}
+
+/* macOS cursor pack */
+:root {
+  --cursor-normal: url("/cursors/macos/normal.cur"), url("/cursors/normal.png") 1 0;
+  --cursor-link: url("/cursors/macos/link.cur"), url("/cursors/link.png") 2 2;
+  --cursor-text: url("/cursors/macos/text.cur"), url("/cursors/text.png") 16 16;
+  --cursor-unavailable: url("/cursors/macos/unavailable.cur"), url("/cursors/unavailable.png") 2 0;
+  --cursor-vertical-resize: url("/cursors/macos/vertical-resize.cur"), url("/cursors/vertical-resize.png") 16 16;
+  --cursor-horizontal-resize: url("/cursors/macos/horizontal-resize.cur"), url("/cursors/horizontal-resize.png") 16 16;
+  --cursor-diagonal-resize-1: url("/cursors/macos/diagonal-resize-1.cur"), url("/cursors/diagonal-resize-1.png") 16 16;
+  --cursor-diagonal-resize-2: url("/cursors/macos/diagonal-resize-2.cur"), url("/cursors/diagonal-resize-2.png") 16 16;
+  --cursor-move: url("/cursors/macos/move.cur"), url("/cursors/move.png") 16 16;
+  --cursor-grabbing: url("/cursors/macos/closehand.cur"), url("/cursors/grabbing.png") 2 0;
+  --cursor-precision: url("/cursors/macos/precision.cur"), url("/cursors/precision.png") 16 16;
+  --cursor-help: url("/cursors/macos/help.cur"), url("/cursors/help.png") 2 2;
+  --cursor-working: url("/cursors/macos/normal.cur"), url("/cursors/normal.png") 1 0;
+  --cursor-busy: url("/cursors/macos/normal.cur"), url("/cursors/normal.png") 1 0;
+  --cursor-zoom-in: url("/cursors/macos/zoom-in.cur"), url("/cursors/zoom-in.png") 2 0;
+  --cursor-zoom-out: url("/cursors/macos/zoom-out.cur"), url("/cursors/zoom-out.png") 2 0;
+}
+
+html,
+body,
+#root,
+.cursor-auto,
+.cursor-default {
+  cursor: var(--cursor-normal), auto;
+}
+
+a,
+button:not(:disabled),
+[role="button"]:not([aria-disabled="true"]),
+select:not(:disabled),
+input[type="button"]:not(:disabled),
+input[type="checkbox"]:not(:disabled),
+input[type="color"]:not(:disabled),
+input[type="file"]:not(:disabled),
+input[type="radio"]:not(:disabled),
+input[type="range"]:not(:disabled),
+input[type="reset"]:not(:disabled),
+input[type="submit"]:not(:disabled),
+.cursor-pointer {
+  cursor: var(--cursor-link), pointer;
+}
+
+input:not([type]):not(:disabled),
+input[type="email"]:not(:disabled),
+input[type="number"]:not(:disabled),
+input[type="password"]:not(:disabled),
+input[type="search"]:not(:disabled),
+input[type="tel"]:not(:disabled),
+input[type="text"]:not(:disabled),
+input[type="url"]:not(:disabled),
+textarea:not(:disabled),
+[contenteditable="true"],
+.cursor-text {
+  cursor: var(--cursor-text), text;
+}
+
+:disabled,
+[aria-disabled="true"],
+.cursor-not-allowed {
+  cursor: var(--cursor-unavailable), not-allowed;
+}
+
+.cursor-grab {
+  cursor: var(--cursor-move), grab;
+}
+
+.cursor-grabbing,
+.active\:cursor-grabbing:active,
+.active-drag {
+  cursor: var(--cursor-grabbing), grabbing !important;
+}
+
+.cursor-move,
+.cursor-all-scroll,
+[draggable="true"] {
+  cursor: var(--cursor-move), move;
+}
+
+.cursor-e-resize,
+.cursor-w-resize,
+.cursor-ew-resize,
+.cursor-col-resize {
+  cursor: var(--cursor-horizontal-resize), ew-resize;
+}
+
+.cursor-n-resize,
+.cursor-s-resize,
+.cursor-ns-resize,
+.cursor-row-resize {
+  cursor: var(--cursor-vertical-resize), ns-resize;
+}
+
+.cursor-nw-resize,
+.cursor-se-resize,
+.cursor-nwse-resize {
+  cursor: var(--cursor-diagonal-resize-1), nwse-resize;
+}
+
+.cursor-ne-resize,
+.cursor-sw-resize,
+.cursor-nesw-resize {
+  cursor: var(--cursor-diagonal-resize-2), nesw-resize;
+}
+
+.cursor-crosshair {
+  cursor: var(--cursor-precision), crosshair;
+}
+
+.cursor-help {
+  cursor: var(--cursor-help), help;
+}
+
+.cursor-progress {
+  cursor: var(--cursor-working), progress;
+}
+
+.cursor-wait {
+  cursor: var(--cursor-busy), wait;
+}
+
+.cursor-zoom-in {
+  cursor: var(--cursor-zoom-in), zoom-in;
+}
+
+.cursor-zoom-out {
+  cursor: var(--cursor-zoom-out), zoom-out;
+}
+
+.window-frame,
+.window-titlebar,
+.window-resize-handle {
+  touch-action: none;
+}
+
+body.window-is-dragging,
+body.window-is-dragging * {
+  cursor: var(--cursor-grabbing), grabbing !important;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+body.window-is-resizing,
+body.window-is-resizing * {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+body.window-resizing-r,
+body.window-resizing-r * {
+  cursor: var(--cursor-horizontal-resize), ew-resize !important;
+}
+
+body.window-resizing-b,
+body.window-resizing-b * {
+  cursor: var(--cursor-vertical-resize), ns-resize !important;
+}
+
+body.window-resizing-br,
+body.window-resizing-br * {
+  cursor: var(--cursor-diagonal-resize-1), nwse-resize !important;
 }
 
 /* Glassmorphism helpers */
@@ -115,11 +280,6 @@
   width: 1px;
   height: 1px;
   opacity: 0;
-}
-
-/* Dragging active styling */
-.active-drag {
-  cursor: grabbing !important;
 }
 
 /* Squircle and Mac style elements */

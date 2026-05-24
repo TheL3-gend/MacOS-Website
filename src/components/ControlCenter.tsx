@@ -16,19 +16,17 @@ interface CCProps {
 }
 
 export const ControlCenter: React.FC<CCProps> = ({ closeCC }) => {
-  const {
-    wifiOn,
-    bluetoothOn,
-    isDarkMode,
-    systemVolume,
-    systemBrightness,
-    toggleWifi,
-    toggleBluetooth,
-    toggleDarkMode,
-    setVolume,
-    setBrightness,
-    openWindow,
-  } = useWindowStore();
+  const wifiOn = useWindowStore((state) => state.wifiOn);
+  const bluetoothOn = useWindowStore((state) => state.bluetoothOn);
+  const isDarkMode = useWindowStore((state) => state.isDarkMode);
+  const systemVolume = useWindowStore((state) => state.systemVolume);
+  const systemBrightness = useWindowStore((state) => state.systemBrightness);
+  const toggleWifi = useWindowStore((state) => state.toggleWifi);
+  const toggleBluetooth = useWindowStore((state) => state.toggleBluetooth);
+  const toggleDarkMode = useWindowStore((state) => state.toggleDarkMode);
+  const setVolume = useWindowStore((state) => state.setVolume);
+  const setBrightness = useWindowStore((state) => state.setBrightness);
+  const openWindow = useWindowStore((state) => state.openWindow);
 
   const handleSliderVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setVolume(Number(e.target.value));

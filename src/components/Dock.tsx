@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useMemo, useRef } from 'react';
 import { useWindowStore } from '../store/useWindowStore';
 import { Terminal, Compass, Settings, FileText, Code2, FolderOpen } from 'lucide-react';
 
@@ -9,8 +9,83 @@ interface DockItem {
   bgClass: string;
 }
 
+// Define dock icons with macOS-style squircle gradients and layouts.
+const DOCK_ITEMS: DockItem[] = [
+  {
+    id: 'finder',
+    name: 'Finder',
+    bgClass: 'bg-gradient-to-b from-sky-400 to-blue-600 border border-blue-400/40 shadow-[0_4px_12px_rgba(2,132,199,0.3)]',
+    icon: (
+      <div className="relative w-full h-full flex items-center justify-center text-white">
+        <FolderOpen className="w-6 h-6 drop-shadow-md" />
+      </div>
+    ),
+  },
+  {
+    id: 'terminal',
+    name: 'Terminal',
+    bgClass: 'bg-gradient-to-b from-zinc-800 to-zinc-950 border border-zinc-700/50 shadow-[0_4px_12px_rgba(0,0,0,0.5)]',
+    icon: (
+      <div className="w-full h-full flex items-center justify-center text-green-400 font-bold font-mono text-[18px]">
+        <Terminal className="w-6 h-6 text-green-400 drop-shadow-[0_0_2px_rgba(74,222,128,0.5)]" />
+      </div>
+    ),
+  },
+  {
+    id: 'safari',
+    name: 'Safari',
+    bgClass: 'bg-gradient-to-b from-sky-100 to-slate-200 border border-sky-300 shadow-[0_4px_12px_rgba(56,189,248,0.2)]',
+    icon: (
+      <div className="w-full h-full flex items-center justify-center text-sky-600">
+        <Compass className="w-6.5 h-6.5 stroke-[1.5] drop-shadow-sm" />
+      </div>
+    ),
+  },
+  {
+    id: 'vscode',
+    name: 'VS Code',
+    bgClass: 'bg-gradient-to-b from-indigo-950 to-indigo-900 border border-indigo-700/50 shadow-[0_4px_12px_rgba(99,102,241,0.2)]',
+    icon: (
+      <div className="w-full h-full flex items-center justify-center text-sky-400">
+        <Code2 className="w-6 h-6 drop-shadow-md" />
+      </div>
+    ),
+  },
+  {
+    id: 'notes',
+    name: 'Notes',
+    bgClass: 'bg-gradient-to-b from-amber-300 to-amber-400 border border-amber-300/50 shadow-[0_4px_12px_rgba(251,191,36,0.3)]',
+    icon: (
+      <div className="w-full h-full flex flex-col justify-between text-amber-950 px-1 py-1.5">
+        {/* Mock lines on notepad */}
+        <div className="h-0.5 w-full bg-amber-950/20" />
+        <FileText className="w-5 h-5 mx-auto opacity-80" />
+        <div className="h-0.5 w-full bg-amber-950/20" />
+      </div>
+    ),
+  },
+  {
+    id: 'settings',
+    name: 'System Settings',
+    bgClass: 'bg-gradient-to-b from-slate-400 to-slate-600 border border-slate-400/40 shadow-[0_4px_12px_rgba(71,85,105,0.3)]',
+    icon: (
+      <div className="w-full h-full flex items-center justify-center text-white">
+        <Settings className="w-6 h-6 drop-shadow-md animate-spin-slow" />
+      </div>
+    ),
+  },
+];
+
 export const Dock: React.FC = () => {
-  const { windows, openWindow, focusWindow } = useWindowStore();
+  const openWindow = useWindowStore((state) => state.openWindow);
+  const focusWindow = useWindowStore((state) => state.focusWindow);
+  const openWindowSignature = useWindowStore((state) =>
+    DOCK_ITEMS.filter((item) => state.windows[item.id]?.isOpen).map((item) => item.id).join('|')
+  );
+  const openWindowIds = useMemo(
+    () => new Set(openWindowSignature.split('|').filter(Boolean)),
+    [openWindowSignature]
+  );
   const dockRef = useRef<HTMLDivElement>(null);
 
   const handleIconClick = (id: string) => {
@@ -21,9 +96,9 @@ export const Dock: React.FC = () => {
   const handleMouseMove = (e: React.MouseEvent) => {
     if (!dockRef.current) return;
     const dock = dockRef.current;
-    const children = dock.querySelectorAll('.dock-item-container');
+    const children = dock.querySelectorAll<HTMLElement>('.dock-item-container');
     
-    children.forEach((child: any) => {
+    children.forEach((child) => {
       const rect = child.getBoundingClientRect();
       const center = rect.left + rect.width / 2;
       const distance = Math.abs(e.clientX - center);
@@ -37,7 +112,7 @@ export const Dock: React.FC = () => {
         scale = 1 + factor * 0.45;
       }
       
-      const icon = child.querySelector('.dock-icon-wrap');
+      const icon = child.querySelector<HTMLElement>('.dock-icon-wrap');
       if (icon) {
         icon.style.transform = `scale(${scale})`;
         icon.style.transformOrigin = 'bottom center';
@@ -50,83 +125,16 @@ export const Dock: React.FC = () => {
 
   const handleMouseLeave = () => {
     if (!dockRef.current) return;
-    const children = dockRef.current.querySelectorAll('.dock-item-container');
+    const children = dockRef.current.querySelectorAll<HTMLElement>('.dock-item-container');
     
-    children.forEach((child: any) => {
-      const icon = child.querySelector('.dock-icon-wrap');
+    children.forEach((child) => {
+      const icon = child.querySelector<HTMLElement>('.dock-icon-wrap');
       if (icon) {
         icon.style.transform = 'scale(1)';
         icon.style.marginTop = '0px';
       }
     });
   };
-
-  // Define dock icons with macOS-style squircle gradients and layouts
-  const dockItems: DockItem[] = [
-    {
-      id: 'finder',
-      name: 'Finder',
-      bgClass: 'bg-gradient-to-b from-sky-400 to-blue-600 border border-blue-400/40 shadow-[0_4px_12px_rgba(2,132,199,0.3)]',
-      icon: (
-        <div className="relative w-full h-full flex items-center justify-center text-white">
-          <FolderOpen className="w-6 h-6 drop-shadow-md" />
-        </div>
-      ),
-    },
-    {
-      id: 'terminal',
-      name: 'Terminal',
-      bgClass: 'bg-gradient-to-b from-zinc-800 to-zinc-950 border border-zinc-700/50 shadow-[0_4px_12px_rgba(0,0,0,0.5)]',
-      icon: (
-        <div className="w-full h-full flex items-center justify-center text-green-400 font-bold font-mono text-[18px]">
-          <Terminal className="w-6 h-6 text-green-400 drop-shadow-[0_0_2px_rgba(74,222,128,0.5)]" />
-        </div>
-      ),
-    },
-    {
-      id: 'safari',
-      name: 'Safari',
-      bgClass: 'bg-gradient-to-b from-sky-100 to-slate-200 border border-sky-300 shadow-[0_4px_12px_rgba(56,189,248,0.2)]',
-      icon: (
-        <div className="w-full h-full flex items-center justify-center text-sky-600">
-          <Compass className="w-6.5 h-6.5 stroke-[1.5] drop-shadow-sm" />
-        </div>
-      ),
-    },
-    {
-      id: 'vscode',
-      name: 'VS Code',
-      bgClass: 'bg-gradient-to-b from-indigo-950 to-indigo-900 border border-indigo-700/50 shadow-[0_4px_12px_rgba(99,102,241,0.2)]',
-      icon: (
-        <div className="w-full h-full flex items-center justify-center text-sky-400">
-          <Code2 className="w-6 h-6 drop-shadow-md" />
-        </div>
-      ),
-    },
-    {
-      id: 'notes',
-      name: 'Notes',
-      bgClass: 'bg-gradient-to-b from-amber-300 to-amber-400 border border-amber-300/50 shadow-[0_4px_12px_rgba(251,191,36,0.3)]',
-      icon: (
-        <div className="w-full h-full flex flex-col justify-between text-amber-950 px-1 py-1.5">
-          {/* Mock lines on notepad */}
-          <div className="h-0.5 w-full bg-amber-950/20" />
-          <FileText className="w-5 h-5 mx-auto opacity-80" />
-          <div className="h-0.5 w-full bg-amber-950/20" />
-        </div>
-      ),
-    },
-    {
-      id: 'settings',
-      name: 'System Settings',
-      bgClass: 'bg-gradient-to-b from-slate-400 to-slate-600 border border-slate-400/40 shadow-[0_4px_12px_rgba(71,85,105,0.3)]',
-      icon: (
-        <div className="w-full h-full flex items-center justify-center text-white">
-          <Settings className="w-6 h-6 drop-shadow-md animate-spin-slow" />
-        </div>
-      ),
-    },
-  ];
 
   return (
     <div className="fixed bottom-3 left-1/2 -translate-x-1/2 z-30 pointer-events-none select-none">
@@ -137,8 +145,8 @@ export const Dock: React.FC = () => {
         className="pointer-events-auto flex items-end gap-3 px-4 py-2.5 rounded-[24px] glass border border-white/20 shadow-2xl relative transition-all"
         style={{ height: '70px' }}
       >
-        {dockItems.map((item) => {
-          const isOpen = windows[item.id]?.isOpen;
+        {DOCK_ITEMS.map((item) => {
+          const isOpen = openWindowIds.has(item.id);
           
           return (
             <div

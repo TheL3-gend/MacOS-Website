@@ -17,7 +17,8 @@ interface DesktopIcon {
 }
 
 export const Desktop: React.FC = () => {
-  const { openWindow, focusWindow } = useWindowStore();
+  const openWindow = useWindowStore((state) => state.openWindow);
+  const focusWindow = useWindowStore((state) => state.focusWindow);
 
   const handleIconDoubleClick = (id: string) => {
     openWindow(id);

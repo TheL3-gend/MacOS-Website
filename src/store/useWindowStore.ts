@@ -74,18 +74,51 @@ const DEFAULT_WINDOWS: Record<string, AppWindow> = {
   },
 };
 
-export const WALLPAPERS = [
-  { id: 'sequoia', name: 'macOS Sequoia', value: 'bg-gradient-to-tr from-amber-500 via-rose-500 to-indigo-700' },
-  { id: 'aurora', name: 'Aurora Sunset', value: 'bg-gradient-to-tr from-purple-800 via-violet-900 to-slate-900' },
-  { id: 'cyber', name: 'Cyber Neon', value: 'bg-gradient-to-tr from-cyan-900 via-slate-950 to-fuchsia-950' },
-  { id: 'minimal', name: 'Midnight Silk', value: 'bg-gradient-to-tr from-zinc-800 via-stone-900 to-zinc-950' },
+export interface WallpaperOption {
+  id: string;
+  name: string;
+  type: 'gradient' | 'video';
+  value: string;
+}
+
+export const WALLPAPERS: WallpaperOption[] = [
+  {
+    id: 'frosted-glass',
+    name: 'Frosted Glass',
+    type: 'video',
+    value: '/backgrounds/Frosted_glass_background_video.mp4',
+  },
+  {
+    id: 'sequoia',
+    name: 'macOS Sequoia',
+    type: 'gradient',
+    value: 'bg-gradient-to-tr from-amber-500 via-rose-500 to-indigo-700',
+  },
+  {
+    id: 'aurora',
+    name: 'Aurora Sunset',
+    type: 'gradient',
+    value: 'bg-gradient-to-tr from-purple-800 via-violet-900 to-slate-900',
+  },
+  {
+    id: 'cyber',
+    name: 'Cyber Neon',
+    type: 'gradient',
+    value: 'bg-gradient-to-tr from-cyan-900 via-slate-950 to-fuchsia-950',
+  },
+  {
+    id: 'minimal',
+    name: 'Midnight Silk',
+    type: 'gradient',
+    value: 'bg-gradient-to-tr from-zinc-800 via-stone-900 to-zinc-950',
+  },
 ];
 
 interface SystemState {
   isBooted: boolean;
   isLocked: boolean;
   isDarkMode: boolean;
-  wallpaper: string; // Tailwind gradient class
+  wallpaperId: string;
   systemVolume: number;
   systemBrightness: number;
   wifiOn: boolean;
@@ -105,7 +138,7 @@ interface SystemState {
   focusWindow: (id: string) => void;
   updateWindowPosition: (id: string, x: number, y: number) => void;
   updateWindowSize: (id: string, width: number, height: number) => void;
-  setWallpaper: (wpClass: string) => void;
+  setWallpaper: (wallpaperId: string) => void;
   toggleDarkMode: () => void;
   setVolume: (v: number) => void;
   setBrightness: (b: number) => void;
@@ -119,7 +152,7 @@ export const useWindowStore = create<SystemState>((set, get) => ({
   isBooted: false,
   isLocked: true,
   isDarkMode: true,
-  wallpaper: WALLPAPERS[0].value,
+  wallpaperId: WALLPAPERS[0].id,
   systemVolume: 80,
   systemBrightness: 90,
   wifiOn: true,
@@ -250,7 +283,10 @@ export const useWindowStore = create<SystemState>((set, get) => ({
     };
   }),
 
-  setWallpaper: (wpClass) => set({ wallpaper: wpClass }),
+  setWallpaper: (wallpaperId) => {
+    if (!WALLPAPERS.some((wallpaper) => wallpaper.id === wallpaperId)) return;
+    set({ wallpaperId });
+  },
   
   toggleDarkMode: () => set((state) => ({ isDarkMode: !state.isDarkMode })),
   

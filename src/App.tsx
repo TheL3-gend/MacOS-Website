@@ -5,9 +5,14 @@ import { LockScreen } from './components/LockScreen';
 import { MenuBar } from './components/MenuBar';
 import { Desktop } from './components/Desktop';
 import { Dock } from './components/Dock';
+import { WallpaperBackground } from './components/WallpaperBackground';
 
 export const App: React.FC = () => {
-  const { isBooted, isLocked, isDarkMode, wallpaper, systemBrightness } = useWindowStore();
+  const isBooted = useWindowStore((state) => state.isBooted);
+  const isLocked = useWindowStore((state) => state.isLocked);
+  const isDarkMode = useWindowStore((state) => state.isDarkMode);
+  const wallpaperId = useWindowStore((state) => state.wallpaperId);
+  const systemBrightness = useWindowStore((state) => state.systemBrightness);
 
   if (!isBooted) {
     return <BootScreen />;
@@ -27,7 +32,7 @@ export const App: React.FC = () => {
       }`}
     >
       {/* Background wallpaper */}
-      <div className={`absolute inset-0 -z-10 ${wallpaper} transition-all duration-700`} />
+      <WallpaperBackground wallpaperId={wallpaperId} />
 
       {/* Top Menu bar navigation */}
       <MenuBar />

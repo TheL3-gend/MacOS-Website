@@ -2,9 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useWindowStore } from '../store/useWindowStore';
 import { ArrowRight, Power, RefreshCw, Moon } from 'lucide-react';
 import gsap from 'gsap';
+import { WallpaperBackground } from './WallpaperBackground';
 
 export const LockScreen: React.FC = () => {
-  const wallpaper = useWindowStore((state) => state.wallpaper);
+  const wallpaperId = useWindowStore((state) => state.wallpaperId);
   const unlockSystem = useWindowStore((state) => state.unlockSystem);
   const shutdown = useWindowStore((state) => state.shutdown);
   const restart = useWindowStore((state) => state.restart);
@@ -55,7 +56,7 @@ export const LockScreen: React.FC = () => {
       className="fixed inset-0 z-40 overflow-hidden flex flex-col justify-between items-center text-white p-12 select-none"
     >
       {/* Background wallpaper with blur */}
-      <div className={`absolute inset-0 -z-10 ${wallpaper} blur-2xl scale-110 saturate-125`} />
+      <WallpaperBackground wallpaperId={wallpaperId} variant="lock" />
       
       {/* Top Section: Date & Time */}
       <div ref={contentRef} className="w-full flex flex-col items-center mt-12 transition-all">

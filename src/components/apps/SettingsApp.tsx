@@ -3,20 +3,18 @@ import { useWindowStore, WALLPAPERS } from '../../store/useWindowStore';
 import { Wifi, Bluetooth, Sun, Moon, Laptop } from 'lucide-react';
 
 export const SettingsApp: React.FC = () => {
-  const {
-    wallpaper,
-    isDarkMode,
-    systemVolume,
-    systemBrightness,
-    wifiOn,
-    bluetoothOn,
-    setWallpaper,
-    toggleDarkMode,
-    setVolume,
-    setBrightness,
-    toggleWifi,
-    toggleBluetooth,
-  } = useWindowStore();
+  const wallpaperId = useWindowStore((state) => state.wallpaperId);
+  const isDarkMode = useWindowStore((state) => state.isDarkMode);
+  const systemVolume = useWindowStore((state) => state.systemVolume);
+  const systemBrightness = useWindowStore((state) => state.systemBrightness);
+  const wifiOn = useWindowStore((state) => state.wifiOn);
+  const bluetoothOn = useWindowStore((state) => state.bluetoothOn);
+  const setWallpaper = useWindowStore((state) => state.setWallpaper);
+  const toggleDarkMode = useWindowStore((state) => state.toggleDarkMode);
+  const setVolume = useWindowStore((state) => state.setVolume);
+  const setBrightness = useWindowStore((state) => state.setBrightness);
+  const toggleWifi = useWindowStore((state) => state.toggleWifi);
+  const toggleBluetooth = useWindowStore((state) => state.toggleBluetooth);
 
   return (
     <div className="flex h-full w-full bg-slate-50 dark:bg-zinc-950 text-slate-800 dark:text-zinc-200 select-none text-xs">
@@ -66,16 +64,33 @@ export const SettingsApp: React.FC = () => {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {WALLPAPERS.map((wp) => (
               <button
+                type="button"
                 key={wp.id}
-                onClick={() => setWallpaper(wp.value)}
+                onClick={() => setWallpaper(wp.id)}
                 className={`flex flex-col gap-1.5 p-1.5 rounded-xl border transition-all ${
-                  wallpaper === wp.value
+                  wallpaperId === wp.id
                     ? 'border-blue-500 bg-blue-50/20 dark:bg-blue-950/20'
                     : 'border-slate-200 dark:border-zinc-800 hover:bg-slate-200/30 dark:hover:bg-zinc-800/30'
                 }`}
               >
                 {/* Wallpaper thumbnail representation */}
-                <div className={`w-full h-16 rounded-lg ${wp.value} shadow-inner`} />
+                {wp.type === 'video' ? (
+                  <div className="relative w-full h-16 overflow-hidden rounded-lg bg-zinc-950 shadow-inner">
+                    <video
+                      src={wp.value}
+                      className="h-full w-full object-cover"
+                      autoPlay
+                      muted
+                      loop
+                      playsInline
+                      preload="metadata"
+                      aria-hidden="true"
+                    />
+                    <div className="absolute inset-0 bg-black/10 pointer-events-none" />
+                  </div>
+                ) : (
+                  <div className={`w-full h-16 rounded-lg ${wp.value} shadow-inner`} />
+                )}
                 <span className="text-[10px] font-semibold text-center w-full block mt-0.5">{wp.name}</span>
               </button>
             ))}
