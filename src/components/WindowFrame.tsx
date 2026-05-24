@@ -22,22 +22,28 @@ export const WindowFrame: React.FC<WindowFrameProps> = ({ id, title, children })
 
   const win = windows[id];
   const windowRef = useRef<HTMLDivElement>(null);
+  const prevMinimizedRef = useRef(false);
 
-  if (!win || !win.isOpen) return null;
-
-  const { position, size, zIndex, isMaximized, isMinimized } = win;
+  const isOpen = win?.isOpen ?? false;
+  const isMinimized = win?.isMinimized ?? false;
+  const isMaximized = win?.isMaximized ?? false;
+  const position = win?.position ?? { x: 100, y: 100 };
+  const size = win?.size ?? { width: 800, height: 600 };
+  const zIndex = win?.zIndex ?? 10;
   const isFocused = activeWindow === id;
 
   // Window opening and minimize/restore animations
   useEffect(() => {
+    if (!isOpen) return;
+
     if (windowRef.current) {
       if (isMinimized) {
         // Animate minimizing into the dock
         gsap.to(windowRef.current, {
           scale: 0.15,
           opacity: 0,
-          y: window.innerHeight - 50,
-          x: window.innerWidth / 2 - size.width / 2,
+          y: (window.innerHeight - 50) - position.y,
+          x: (window.innerWidth / 2 - size.width / 2) - position.x,
           duration: 0.35,
           ease: 'power2.inOut',
           onComplete: () => {
@@ -47,26 +53,43 @@ export const WindowFrame: React.FC<WindowFrameProps> = ({ id, title, children })
       } else {
         // Animate opening/restoring
         windowRef.current.style.display = 'flex';
+
+        let startScale = 0.85;
+        let startOpacity = 0;
+        let startY = 40;
+        let startX = 0;
+
+        // If it was previously minimized and is now restored
+        if (prevMinimizedRef.current && !isMinimized) {
+          startScale = 0.15;
+          startOpacity = 0;
+          startY = (window.innerHeight - 50) - position.y;
+          startX = (window.innerWidth / 2 - size.width / 2) - position.x;
+        }
+
         gsap.fromTo(
           windowRef.current,
           {
-            scale: isMinimized ? 0.15 : 0.85,
-            opacity: 0,
-            y: isMinimized ? window.innerHeight - 50 : position.y + 40,
-            x: isMinimized ? window.innerWidth / 2 - size.width / 2 : position.x,
+            scale: startScale,
+            opacity: startOpacity,
+            y: startY,
+            x: startX,
           },
           {
             scale: 1,
             opacity: 1,
-            y: isMaximized ? 28 : position.y,
-            x: isMaximized ? 0 : position.x,
+            y: 0,
+            x: 0,
             duration: 0.35,
             ease: 'power2.out',
           }
         );
       }
     }
-  }, [isMinimized]);
+    prevMinimizedRef.current = isMinimized;
+  }, [isMinimized, isOpen]);
+
+  if (!isOpen) return null;
 
   // Handle Dragging
   const handleDragStart = (e: React.MouseEvent) => {
