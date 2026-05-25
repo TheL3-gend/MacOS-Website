@@ -16,8 +16,49 @@ const MENU_BAR_HEIGHT = 28;
 const DOCK_RESERVED_HEIGHT = 100;
 const MIN_WINDOW_WIDTH = 380;
 const MIN_WINDOW_HEIGHT = 280;
+const FULLSCREEN_ANIMATION_DURATION = 0.58;
+const MINIMIZE_ANIMATION_DURATION = 0.48;
 
 const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
+
+const getFullscreenFrame = () => ({
+  top: MENU_BAR_HEIGHT,
+  left: 0,
+  width: window.innerWidth,
+  height: window.innerHeight - MENU_BAR_HEIGHT,
+});
+
+const getDockTargetCenter = (appId: string) => {
+  const dockItem = Array.from(document.querySelectorAll<HTMLElement>('[data-dock-app-id]')).find(
+    (element) => element.dataset.dockAppId === appId
+  );
+  const dockIcon = dockItem?.querySelector<HTMLElement>('.dock-icon-wrap') ?? dockItem;
+  const dockIconRect = dockIcon?.getBoundingClientRect();
+
+  if (dockIconRect) {
+    return {
+      x: dockIconRect.left + dockIconRect.width / 2,
+      y: dockIconRect.top + dockIconRect.height / 2,
+    };
+  }
+
+  return {
+    x: window.innerWidth / 2,
+    y: window.innerHeight - 34,
+  };
+};
+
+const getDockTargetOffset = (
+  frame: { top: number; left: number; width: number; height: number },
+  appId: string
+) => {
+  const dockTargetCenter = getDockTargetCenter(appId);
+
+  return {
+    x: dockTargetCenter.x - (frame.left + frame.width / 2),
+    y: dockTargetCenter.y - (frame.top + frame.height / 2),
+  };
+};
 
 export const WindowFrame: React.FC<WindowFrameProps> = ({ id, title, children }) => {
   const win = useWindowStore((state) => state.windows[id]);
@@ -31,6 +72,8 @@ export const WindowFrame: React.FC<WindowFrameProps> = ({ id, title, children })
 
   const windowRef = useRef<HTMLDivElement>(null);
   const prevMinimizedRef = useRef(false);
+  const prevOpenRef = useRef(false);
+  const prevMaximizedRef = useRef(false);
 
   const isOpen = win?.isOpen ?? false;
   const isMinimized = win?.isMinimized ?? false;
@@ -52,23 +95,61 @@ export const WindowFrame: React.FC<WindowFrameProps> = ({ id, title, children })
 
   // Window opening and minimize/restore animations
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen) {
+      prevOpenRef.current = false;
+      prevMinimizedRef.current = isMinimized;
+      return;
+    }
+
+    const wasOpen = prevOpenRef.current;
+    const minimizedChanged = prevMinimizedRef.current !== isMinimized;
+    if (wasOpen && !minimizedChanged) return;
 
     if (windowRef.current) {
       const currentPosition = latestPositionRef.current;
       const currentSize = latestSizeRef.current;
+      const currentFrame = isMaximized
+        ? getFullscreenFrame()
+        : {
+            top: currentPosition.y,
+            left: currentPosition.x,
+            width: currentSize.width,
+            height: currentSize.height,
+          };
+      const dockTargetOffset = getDockTargetOffset(currentFrame, id);
 
       if (isMinimized) {
         // Animate minimizing into the dock
+        const visibleFrame = windowRef.current.getBoundingClientRect();
+        const visibleDockTargetOffset = getDockTargetOffset(
+          {
+            top: visibleFrame.top,
+            left: visibleFrame.left,
+            width: visibleFrame.width,
+            height: visibleFrame.height,
+          },
+          id
+        );
+
+        gsap.killTweensOf(windowRef.current);
+        windowRef.current.style.willChange = 'transform, opacity, filter';
         gsap.to(windowRef.current, {
-          scale: 0.15,
+          scale: 0.12,
           opacity: 0,
-          y: (window.innerHeight - 50) - currentPosition.y,
-          x: (window.innerWidth / 2 - currentSize.width / 2) - currentPosition.x,
-          duration: 0.35,
-          ease: 'power2.inOut',
+          x: visibleDockTargetOffset.x,
+          y: visibleDockTargetOffset.y,
+          filter: 'blur(2px)',
+          transformOrigin: 'center center',
+          duration: MINIMIZE_ANIMATION_DURATION,
+          ease: 'power3.inOut',
           onComplete: () => {
-            if (windowRef.current) windowRef.current.style.display = 'none';
+            const currentWindow = useWindowStore.getState().windows[id];
+            if (windowRef.current) {
+              windowRef.current.style.willChange = '';
+              if (currentWindow?.isMinimized) {
+                windowRef.current.style.display = 'none';
+              }
+            }
           },
         });
       } else {
@@ -79,15 +160,19 @@ export const WindowFrame: React.FC<WindowFrameProps> = ({ id, title, children })
         let startOpacity = 0;
         let startY = 40;
         let startX = 0;
+        let startFilter = 'blur(0px)';
 
         // If it was previously minimized and is now restored
         if (prevMinimizedRef.current && !isMinimized) {
-          startScale = 0.15;
+          startScale = 0.12;
           startOpacity = 0;
-          startY = (window.innerHeight - 50) - currentPosition.y;
-          startX = (window.innerWidth / 2 - currentSize.width / 2) - currentPosition.x;
+          startY = dockTargetOffset.y;
+          startX = dockTargetOffset.x;
+          startFilter = 'blur(2px)';
         }
 
+        gsap.killTweensOf(windowRef.current);
+        windowRef.current.style.willChange = 'transform, opacity, filter';
         gsap.fromTo(
           windowRef.current,
           {
@@ -95,20 +180,80 @@ export const WindowFrame: React.FC<WindowFrameProps> = ({ id, title, children })
             opacity: startOpacity,
             y: startY,
             x: startX,
+            filter: startFilter,
+            transformOrigin: 'center center',
           },
           {
             scale: 1,
             opacity: 1,
             y: 0,
             x: 0,
-            duration: 0.35,
-            ease: 'power2.out',
+            filter: 'blur(0px)',
+            duration: prevMinimizedRef.current ? MINIMIZE_ANIMATION_DURATION : 0.35,
+            ease: prevMinimizedRef.current ? 'back.out(1.08)' : 'power2.out',
+            onComplete: () => {
+              if (windowRef.current) windowRef.current.style.willChange = '';
+            },
           }
         );
       }
     }
     prevMinimizedRef.current = isMinimized;
-  }, [isMinimized, isOpen]);
+    prevOpenRef.current = isOpen;
+  }, [id, isMaximized, isMinimized, isOpen]);
+
+  React.useLayoutEffect(() => {
+    const element = windowRef.current;
+    const wasMaximized = prevMaximizedRef.current;
+
+    if (!isOpen || isMinimized || !element || wasMaximized === isMaximized) {
+      prevMaximizedRef.current = isMaximized;
+      return;
+    }
+
+    const currentPosition = latestPositionRef.current;
+    const currentSize = latestSizeRef.current;
+    const normalFrame = {
+      top: currentPosition.y,
+      left: currentPosition.x,
+      width: currentSize.width,
+      height: currentSize.height,
+    };
+    const fullscreenFrame = getFullscreenFrame();
+    const fromFrame = isMaximized ? normalFrame : fullscreenFrame;
+    const toFrame = isMaximized ? fullscreenFrame : normalFrame;
+
+    gsap.killTweensOf(element);
+    element.style.display = 'flex';
+    element.style.willChange = 'top, left, width, height';
+
+    gsap.fromTo(
+      element,
+      {
+        top: fromFrame.top,
+        left: fromFrame.left,
+        width: fromFrame.width,
+        height: fromFrame.height,
+        x: 0,
+        y: 0,
+        scale: 1,
+        opacity: 1,
+      },
+      {
+        top: toFrame.top,
+        left: toFrame.left,
+        width: toFrame.width,
+        height: toFrame.height,
+        duration: FULLSCREEN_ANIMATION_DURATION,
+        ease: 'power3.inOut',
+        onComplete: () => {
+          element.style.willChange = '';
+        },
+      }
+    );
+
+    prevMaximizedRef.current = isMaximized;
+  }, [isMaximized, isMinimized, isOpen]);
 
   if (!isOpen) return null;
 
@@ -295,7 +440,7 @@ export const WindowFrame: React.FC<WindowFrameProps> = ({ id, title, children })
         top: '28px', // height of menu bar
         left: '0px',
         width: '100vw',
-        height: 'calc(100vh - 28px - 72px)', // minus menubar and dock
+        height: 'calc(100vh - 28px)',
         zIndex: zIndex,
       }
     : {
@@ -312,7 +457,7 @@ export const WindowFrame: React.FC<WindowFrameProps> = ({ id, title, children })
       ref={windowRef}
       style={windowStyle}
       onClick={() => focusWindow(id)}
-      className={`window-frame flex flex-col rounded-xl overflow-hidden glass-panel dark:glass-panel-dark shadow-2xl transition-shadow border border-white/20 select-none ${
+      className={`window-frame flex flex-col rounded-xl overflow-hidden glass-panel shadow-2xl transition-shadow border border-white/20 select-none ${
         isFocused ? 'ring-1 ring-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.3)]' : 'opacity-95 shadow-[0_10px_30px_rgba(0,0,0,0.15)]'
       }`}
     >
@@ -322,23 +467,43 @@ export const WindowFrame: React.FC<WindowFrameProps> = ({ id, title, children })
         className="window-titlebar h-10 px-4 flex items-center justify-between border-b border-black/10 dark:border-white/10 bg-slate-100/40 dark:bg-zinc-800/40 cursor-grab active:cursor-grabbing shrink-0 relative"
       >
         {/* macOS Traffic Lights (Window Controls) */}
-        <div className="flex items-center gap-2 relative z-10" onPointerDown={(e) => e.stopPropagation()}>
+        <div
+          className="flex items-center gap-2 relative z-10"
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={(e) => e.stopPropagation()}
+        >
           <button
-            onClick={() => closeWindow(id)}
+            type="button"
+            aria-label={`Close ${title}`}
+            onClick={(e) => {
+              e.stopPropagation();
+              closeWindow(id);
+            }}
             className="w-3.5 h-3.5 rounded-full mac-traffic-red hover:brightness-75 transition-all flex items-center justify-center text-[8px] text-red-950 font-bold group"
           >
             <span className="opacity-0 group-hover:opacity-100 select-none">x</span>
           </button>
 
           <button
-            onClick={() => minimizeWindow(id)}
+            type="button"
+            aria-label={`Minimize ${title}`}
+            onClick={(e) => {
+              e.stopPropagation();
+              minimizeWindow(id);
+            }}
             className="w-3.5 h-3.5 rounded-full mac-traffic-yellow hover:brightness-75 transition-all flex items-center justify-center text-[8px] text-yellow-950 font-bold group"
           >
             <span className="opacity-0 group-hover:opacity-100 select-none">-</span>
           </button>
 
           <button
-            onClick={() => toggleMaximizeWindow(id)}
+            type="button"
+            aria-label={`${isMaximized ? 'Restore' : 'Maximize'} ${title}`}
+            onClick={(e) => {
+              e.stopPropagation();
+              focusWindow(id);
+              toggleMaximizeWindow(id);
+            }}
             className="w-3.5 h-3.5 rounded-full mac-traffic-green hover:brightness-75 transition-all flex items-center justify-center text-[8px] text-green-950 font-bold group"
           >
             <span className="opacity-0 group-hover:opacity-100 select-none">+</span>

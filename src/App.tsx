@@ -14,10 +14,34 @@ export const App: React.FC = () => {
   const wallpaperId = useWindowStore((state) => state.wallpaperId);
   const systemBrightness = useWindowStore((state) => state.systemBrightness);
   const bootSystem = useWindowStore((state) => state.bootSystem);
+  const isDockHiddenForFullscreen = useWindowStore((state) => {
+    const activeWindow = state.activeWindow ? state.windows[state.activeWindow] : null;
+    return Boolean(activeWindow?.isOpen && !activeWindow.isMinimized && activeWindow.isMaximized);
+  });
 
   const [renderLockScreen, setRenderLockScreen] = React.useState(isLocked);
+  const [isThemeTransitioning, setIsThemeTransitioning] = React.useState(false);
+  const hasObservedThemeRef = React.useRef(false);
   const isUnlocking = renderLockScreen && !isLocked;
   const unlockRevealDelay = isUnlocking ? '0.45s' : '0s';
+  const dockIsHidden = isLocked || isDockHiddenForFullscreen;
+  const dockTranslateY = dockIsHidden ? 'calc(100% + 20px)' : '0px';
+
+  React.useEffect(() => {
+    if (!hasObservedThemeRef.current) {
+      hasObservedThemeRef.current = true;
+      return;
+    }
+
+    setIsThemeTransitioning(true);
+    const transitionTimeout = window.setTimeout(() => {
+      setIsThemeTransitioning(false);
+    }, 940);
+
+    return () => {
+      window.clearTimeout(transitionTimeout);
+    };
+  }, [isDarkMode]);
 
   React.useEffect(() => {
     if (isLocked) {
@@ -37,7 +61,7 @@ export const App: React.FC = () => {
     <div
       className={`relative w-screen h-screen overflow-hidden flex flex-col font-sans select-none transition-colors duration-300 ${
         isDarkMode ? 'dark bg-zinc-950 text-zinc-100' : 'bg-slate-100 text-zinc-800'
-      }`}
+      } ${isThemeTransitioning ? 'theme-transitioning' : ''}`}
     >
       {/* Background wallpaper */}
       <WallpaperBackground wallpaperId={wallpaperId} isLocked={isLocked} />
@@ -70,12 +94,19 @@ export const App: React.FC = () => {
 
       {/* Dock navigation */}
       <div
-        className={`fixed bottom-0 left-0 right-0 z-30 ${
-          isLocked ? 'translate-y-20 opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'
+        className={`fixed bottom-0 left-0 right-0 ${
+          isLocked
+            ? 'opacity-0 pointer-events-none'
+            : isDockHiddenForFullscreen
+              ? 'opacity-100 pointer-events-none'
+              : 'opacity-100'
         }`}
         style={{
-          transition: 'transform 1s cubic-bezier(0.16, 1, 0.3, 1), opacity 1s cubic-bezier(0.16, 1, 0.3, 1)',
+          zIndex: 2147483647,
+          transform: `translate3d(0, ${dockTranslateY}, 0)`,
+          transition: 'transform 1.1s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
           transitionDelay: unlockRevealDelay,
+          willChange: 'transform',
         }}
       >
         <Dock />
@@ -89,6 +120,15 @@ export const App: React.FC = () => {
       {/* Boot Screen Overlay */}
       {!isBooted && (
         <BootScreen onBootComplete={bootSystem} />
+      )}
+
+      {/* Theme transition wash */}
+      {isThemeTransitioning && (
+        <div
+          className={`theme-switch-wash ${
+            isDarkMode ? 'theme-switch-wash-dark' : 'theme-switch-wash-light'
+          }`}
+        />
       )}
 
       {/* Brightness Overlay (Simulates screen dimming) */}

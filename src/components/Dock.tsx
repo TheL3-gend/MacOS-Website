@@ -103,7 +103,8 @@ export const Dock: React.FC = () => {
       const center = rect.left + rect.width / 2;
       const distance = Math.abs(e.clientX - center);
       
-      const maxDistance = 70;
+      // Hover effect distance
+      const maxDistance = 60;
       let scale = 1;
       
       if (distance < maxDistance) {
@@ -137,7 +138,7 @@ export const Dock: React.FC = () => {
   };
 
   return (
-    <div className="fixed bottom-3 left-1/2 -translate-x-1/2 z-30 pointer-events-none select-none">
+    <div className="flex justify-center pb-3 pointer-events-none select-none">
       <div
         ref={dockRef}
         onMouseMove={handleMouseMove}
@@ -151,6 +152,7 @@ export const Dock: React.FC = () => {
           return (
             <div
               key={item.id}
+              data-dock-app-id={item.id}
               onClick={() => handleIconClick(item.id)}
               className="dock-item-container flex flex-col items-center justify-end relative cursor-pointer pb-1 group"
               style={{ width: '48px', height: '100%' }}

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useWindowStore } from '../store/useWindowStore';
-import { Apple, Wifi, Battery, Sliders } from 'lucide-react';
+import { Wifi, Battery, Sliders } from 'lucide-react';
 import { ControlCenter } from './ControlCenter';
 
 export const MenuBar: React.FC = () => {
@@ -77,7 +77,12 @@ export const MenuBar: React.FC = () => {
               activeDropdown === 'apple' ? 'bg-white/10' : ''
             }`}
           >
-            <Apple className="w-3.5 h-3.5 fill-white text-white" />
+            <img
+              src="/leaf_logo_transparent.png"
+              alt=""
+              className="h-4 w-4 object-contain"
+              aria-hidden="true"
+            />
           </button>
 
           {activeDropdown === 'apple' && (

@@ -40,7 +40,7 @@ export const BootScreen: React.FC<BootScreenProps> = ({ onBootComplete }) => {
     >
       <div className="flex flex-col items-center">
         <img
-          src="/leaf_logo.jpeg"
+          src="/leaf_logo_transparent.png"
           alt="Boot Logo"
           className="w-37 h-37 object-contain mb-10 opacity-90 animate-pulse rounded-2xl"
         />
