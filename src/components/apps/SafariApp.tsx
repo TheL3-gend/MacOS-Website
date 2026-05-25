@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { RotateCw, Globe, ChevronLeft, ChevronRight, Check } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -10,11 +10,17 @@ interface Project {
   tags: string[];
 }
 
+type BidFeedback = {
+  type: 'success' | 'error';
+  text: string;
+};
+
 export const SafariApp: React.FC = () => {
   const [activeProjIndex, setActiveProjIndex] = useState(0);
   const [searchUrl, setSearchUrl] = useState('https://ilgaz.dev/projects/cosmic-nft');
   const [nftBid, setNftBid] = useState('1.5');
   const [isBidding, setIsBidding] = useState(false);
+  const [bidFeedback, setBidFeedback] = useState<BidFeedback | null>(null);
   const [aiInput, setAiInput] = useState('');
   const [aiMessages, setAiMessages] = useState<Array<{ sender: 'user' | 'ai'; text: string }>>([
     { sender: 'ai', text: 'Hello! I am your AI assistant. Ask me to refactor or design anything!' }
@@ -25,6 +31,22 @@ export const SafariApp: React.FC = () => {
     { id: 3, text: 'Read 15 Pages', done: false },
     { id: 4, text: 'Refactor Core Logic', done: false }
   ]);
+  const bidTimeoutRef = useRef<number | null>(null);
+  const feedbackTimeoutRef = useRef<number | null>(null);
+  const aiTimeoutRefs = useRef<number[]>([]);
+
+  useEffect(() => {
+    return () => {
+      if (bidTimeoutRef.current !== null) {
+        window.clearTimeout(bidTimeoutRef.current);
+      }
+      if (feedbackTimeoutRef.current !== null) {
+        window.clearTimeout(feedbackTimeoutRef.current);
+      }
+      aiTimeoutRefs.current.forEach((timeoutId) => window.clearTimeout(timeoutId));
+      aiTimeoutRefs.current = [];
+    };
+  }, []);
 
   const projects: Project[] = [
     {
@@ -71,15 +93,35 @@ export const SafariApp: React.FC = () => {
   const handleBidSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (isBidding) return;
+
+    const parsedBid = Number(nftBid);
+    if (!Number.isFinite(parsedBid) || parsedBid < 1.49) {
+      setBidFeedback({ type: 'error', text: 'Enter a bid of at least 1.49 ETH.' });
+      return;
+    }
+
+    if (bidTimeoutRef.current !== null) {
+      window.clearTimeout(bidTimeoutRef.current);
+    }
+    if (feedbackTimeoutRef.current !== null) {
+      window.clearTimeout(feedbackTimeoutRef.current);
+    }
+
+    setBidFeedback(null);
     setIsBidding(true);
-    setTimeout(() => {
+    bidTimeoutRef.current = window.setTimeout(() => {
+      bidTimeoutRef.current = null;
       setIsBidding(false);
       confetti({
         particleCount: 80,
         spread: 60,
         origin: { y: 0.7 }
       });
-      alert(`Bid of ${nftBid} ETH placed successfully!`);
+      setBidFeedback({ type: 'success', text: `Bid of ${parsedBid.toFixed(2)} ETH placed successfully.` });
+      feedbackTimeoutRef.current = window.setTimeout(() => {
+        feedbackTimeoutRef.current = null;
+        setBidFeedback(null);
+      }, 3000);
     }, 1500);
   };
 
@@ -92,7 +134,8 @@ export const SafariApp: React.FC = () => {
     setAiMessages(prev => [...prev, { sender: 'user', text: userMsg }]);
     setAiInput('');
 
-    setTimeout(() => {
+    const replyTimeoutId = window.setTimeout(() => {
+      aiTimeoutRefs.current = aiTimeoutRefs.current.filter((timeoutId) => timeoutId !== replyTimeoutId);
       let reply = "That sounds interesting! Let's write the code for that using a clean, scalable React component wrapper.";
       if (userMsg.toLowerCase().includes('optimize') || userMsg.toLowerCase().includes('refactor')) {
         reply = "Optimization suggestion: We can implement memoization (useMemo/useCallback) and virtualize the long lists using a custom window container to avoid unnecessary re-renders.";
@@ -102,6 +145,7 @@ export const SafariApp: React.FC = () => {
 
       setAiMessages(prev => [...prev, { sender: 'ai', text: reply }]);
     }, 1000);
+    aiTimeoutRefs.current.push(replyTimeoutId);
   };
 
   // Zen Habits Toggle
@@ -213,6 +257,7 @@ export const SafariApp: React.FC = () => {
                   <div className="relative flex-1">
                     <input
                       type="number"
+                      required
                       step="0.01"
                       min="1.49"
                       value={nftBid}
@@ -229,6 +274,17 @@ export const SafariApp: React.FC = () => {
                     {isBidding ? 'Placing...' : 'Place Bid'}
                   </button>
                 </form>
+                {bidFeedback && (
+                  <div
+                    className={`rounded-lg border px-3 py-2 text-[11px] font-semibold ${
+                      bidFeedback.type === 'success'
+                        ? 'border-emerald-200/60 bg-emerald-50 text-emerald-700 dark:border-emerald-800/50 dark:bg-emerald-950/20 dark:text-emerald-300'
+                        : 'border-red-200/60 bg-red-50 text-red-700 dark:border-red-900/50 dark:bg-red-950/20 dark:text-red-300'
+                    }`}
+                  >
+                    {bidFeedback.text}
+                  </div>
+                )}
               </div>
             </div>
           </div>

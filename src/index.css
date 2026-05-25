@@ -219,6 +219,27 @@ body.desktop-icon-is-dragging * {
   animation: theme-switch-wash 940ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
+.animate-fade-in {
+  animation: fade-in 180ms ease-out both;
+}
+
+.animate-dropdown-in {
+  animation: dropdown-in 120ms ease-out both;
+  transform-origin: top left;
+}
+
+.animate-panel-in {
+  animation: panel-in 180ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animate-pop-in {
+  animation: pop-in 180ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animate-spin-slow {
+  animation: spin 8s linear infinite;
+}
+
 .theme-switch-wash-light {
   background:
     radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0) 58%),
@@ -242,6 +263,58 @@ body.desktop-icon-is-dragging * {
 
   100% {
     opacity: 0;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes dropdown-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(-4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
   }
 }
 
@@ -282,6 +355,29 @@ body.desktop-icon-is-dragging * {
   -webkit-backdrop-filter: blur(30px);
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+}
+
+.menu-bar-shell {
+  background: rgba(15, 23, 42, 0.42);
+  backdrop-filter: blur(22px) saturate(1.35);
+  -webkit-backdrop-filter: blur(22px) saturate(1.35);
+  transform: translateZ(0);
+}
+
+.dark .menu-bar-shell {
+  background: rgba(9, 9, 11, 0.48);
+  border-bottom-color: rgba(255, 255, 255, 0.14);
+}
+
+.window-titlebar {
+  background: rgba(241, 245, 249, 0.78);
+  backdrop-filter: blur(22px) saturate(1.25);
+  -webkit-backdrop-filter: blur(22px) saturate(1.25);
+  transform: translateZ(0);
+}
+
+.dark .window-titlebar {
+  background: rgba(39, 39, 42, 0.78);
 }
 
 /* Custom scrollbar */

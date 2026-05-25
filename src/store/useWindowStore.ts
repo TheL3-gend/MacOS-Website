@@ -74,6 +74,14 @@ const DEFAULT_WINDOWS: Record<string, AppWindow> = {
   },
 };
 
+const getTopVisibleWindowId = (
+  windows: Record<string, AppWindow>,
+  excludedId?: string
+) =>
+  Object.values(windows)
+    .filter((window) => window.id !== excludedId && window.isOpen && !window.isMinimized)
+    .sort((a, b) => b.zIndex - a.zIndex)[0]?.id ?? null;
+
 export interface WallpaperOption {
   id: string;
   name: string;
@@ -191,32 +199,38 @@ export const useWindowStore = create<SystemState>((set, get) => ({
   closeWindow: (id) => set((state) => {
     const window = state.windows[id];
     if (!window) return {};
-    return {
-      activeWindow: state.activeWindow === id ? null : state.activeWindow,
-      windows: {
-        ...state.windows,
-        [id]: {
-          ...window,
-          isOpen: false,
-          isMinimized: false,
-          isMaximized: false,
-        },
+    const nextWindows = {
+      ...state.windows,
+      [id]: {
+        ...window,
+        isOpen: false,
+        isMinimized: false,
+        isMaximized: false,
       },
+    };
+    return {
+      activeWindow: state.activeWindow === id
+        ? getTopVisibleWindowId(nextWindows, id)
+        : state.activeWindow,
+      windows: nextWindows,
     };
   }),
 
   minimizeWindow: (id) => set((state) => {
     const window = state.windows[id];
     if (!window) return {};
-    return {
-      activeWindow: state.activeWindow === id ? null : state.activeWindow,
-      windows: {
-        ...state.windows,
-        [id]: {
-          ...window,
-          isMinimized: true,
-        },
+    const nextWindows = {
+      ...state.windows,
+      [id]: {
+        ...window,
+        isMinimized: true,
       },
+    };
+    return {
+      activeWindow: state.activeWindow === id
+        ? getTopVisibleWindowId(nextWindows, id)
+        : state.activeWindow,
+      windows: nextWindows,
     };
   }),
 

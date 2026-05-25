@@ -16,7 +16,9 @@ export const LockScreen: React.FC<LockScreenProps> = ({ onUnlockComplete }) => {
   const [time, setTime] = useState(new Date());
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasEntered, setHasEntered] = useState(false);
+  const [isSleeping, setIsSleeping] = useState(false);
   const unlockDelayRef = useRef<number | null>(null);
+  const sleepDelayRef = useRef<number | null>(null);
 
   // Live clock
   useEffect(() => {
@@ -36,18 +38,31 @@ export const LockScreen: React.FC<LockScreenProps> = ({ onUnlockComplete }) => {
       if (unlockDelayRef.current !== null) {
         window.clearTimeout(unlockDelayRef.current);
       }
+      if (sleepDelayRef.current !== null) {
+        window.clearTimeout(sleepDelayRef.current);
+      }
     };
   }, []);
 
   const handleLogin = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    if (isSubmitting || !isLocked) return;
+    if (isSubmitting || isSleeping || !isLocked) return;
 
     setIsSubmitting(true);
     unlockDelayRef.current = window.setTimeout(() => {
       unlockDelayRef.current = null;
       unlockSystem();
     }, 180);
+  };
+
+  const handleSleep = () => {
+    if (isSubmitting || isSleeping) return;
+
+    setIsSleeping(true);
+    sleepDelayRef.current = window.setTimeout(() => {
+      sleepDelayRef.current = null;
+      setIsSleeping(false);
+    }, 1400);
   };
 
   const handleTransitionEnd = (event: React.TransitionEvent<HTMLDivElement>) => {
@@ -156,7 +171,8 @@ export const LockScreen: React.FC<LockScreenProps> = ({ onUnlockComplete }) => {
         </button>
         
         <button
-          onClick={handleLogin}
+          onClick={handleSleep}
+          disabled={isSleeping}
           className="flex flex-col items-center gap-1.5 hover:opacity-100 opacity-70 group transition-all"
         >
           <div className="w-10 h-10 rounded-full border border-white/20 bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-all">
@@ -165,6 +181,10 @@ export const LockScreen: React.FC<LockScreenProps> = ({ onUnlockComplete }) => {
           <span>Sleep</span>
         </button>
       </div>
+
+      {isSleeping && (
+        <div className="absolute inset-0 z-10 bg-black/75 animate-fade-in" />
+      )}
     </div>
   );
 };

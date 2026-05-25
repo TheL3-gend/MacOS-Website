@@ -20,6 +20,12 @@ const FULLSCREEN_ANIMATION_DURATION = 0.58;
 const MINIMIZE_ANIMATION_DURATION = 0.48;
 
 const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
+const getDesktopBounds = () => ({
+  minX: 0,
+  minY: MENU_BAR_HEIGHT,
+  maxX: window.innerWidth,
+  maxY: Math.max(MENU_BAR_HEIGHT + MIN_WINDOW_HEIGHT, window.innerHeight - DOCK_RESERVED_HEIGHT),
+});
 
 const getFullscreenFrame = () => ({
   top: MENU_BAR_HEIGHT,
@@ -298,12 +304,13 @@ export const WindowFrame: React.FC<WindowFrameProps> = ({ id, title, children })
 
       const deltaX = moveEvent.clientX - startX;
       const deltaY = moveEvent.clientY - startY;
-      const maxX = Math.max(0, window.innerWidth - size.width);
-      const maxY = window.innerHeight - DOCK_RESERVED_HEIGHT;
+      const bounds = getDesktopBounds();
+      const maxX = Math.max(bounds.minX, bounds.maxX - size.width);
+      const maxY = Math.max(bounds.minY, bounds.maxY - size.height);
 
       // Restrict positioning to stay on the visible desktop area.
-      nextX = clamp(initX + deltaX, 0, maxX);
-      nextY = clamp(initY + deltaY, MENU_BAR_HEIGHT, maxY);
+      nextX = clamp(initX + deltaX, bounds.minX, maxX);
+      nextY = clamp(initY + deltaY, bounds.minY, maxY);
       scheduleDragFrame();
     };
 
@@ -363,6 +370,8 @@ export const WindowFrame: React.FC<WindowFrameProps> = ({ id, title, children })
     const startY = e.clientY;
     const initWidth = size.width;
     const initHeight = size.height;
+    const initLeft = position.x;
+    const initTop = position.y;
     const pointerId = e.pointerId;
     let nextWidth = initWidth;
     let nextHeight = initHeight;
@@ -386,11 +395,15 @@ export const WindowFrame: React.FC<WindowFrameProps> = ({ id, title, children })
     const handleResizeMove = (moveEvent: PointerEvent) => {
       if (moveEvent.pointerId !== pointerId) return;
 
+      const bounds = getDesktopBounds();
+      const maxWidth = Math.max(MIN_WINDOW_WIDTH, bounds.maxX - initLeft);
+      const maxHeight = Math.max(MIN_WINDOW_HEIGHT, bounds.maxY - initTop);
+
       if (direction === 'r' || direction === 'br') {
-        nextWidth = Math.max(MIN_WINDOW_WIDTH, initWidth + (moveEvent.clientX - startX));
+        nextWidth = clamp(initWidth + (moveEvent.clientX - startX), MIN_WINDOW_WIDTH, maxWidth);
       }
       if (direction === 'b' || direction === 'br') {
-        nextHeight = Math.max(MIN_WINDOW_HEIGHT, initHeight + (moveEvent.clientY - startY));
+        nextHeight = clamp(initHeight + (moveEvent.clientY - startY), MIN_WINDOW_HEIGHT, maxHeight);
       }
 
       scheduleResizeFrame();
@@ -464,7 +477,7 @@ export const WindowFrame: React.FC<WindowFrameProps> = ({ id, title, children })
       {/* Title Bar */}
       <div
         onPointerDown={handleDragStart}
-        className="window-titlebar h-10 px-4 flex items-center justify-between border-b border-black/10 dark:border-white/10 bg-slate-100/40 dark:bg-zinc-800/40 cursor-grab active:cursor-grabbing shrink-0 relative"
+        className="window-titlebar h-10 px-4 flex items-center justify-between border-b border-black/10 dark:border-white/10 cursor-grab active:cursor-grabbing shrink-0 relative"
       >
         {/* macOS Traffic Lights (Window Controls) */}
         <div

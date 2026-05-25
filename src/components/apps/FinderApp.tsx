@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { User, Briefcase, Award, Mail, Calendar, Send } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -14,6 +14,15 @@ export const FinderApp: React.FC = () => {
   const [contactEmail, setContactEmail] = useState('');
   const [contactMsg, setContactMsg] = useState('');
   const [formSubmitted, setFormSubmitted] = useState(false);
+  const contactResetTimeoutRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (contactResetTimeoutRef.current !== null) {
+        window.clearTimeout(contactResetTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const tabs: FinderTab[] = [
     { id: 'about', name: 'About Me', icon: <User className="w-4 h-4 text-sky-500" /> },
@@ -35,7 +44,12 @@ export const FinderApp: React.FC = () => {
     });
 
     // Reset form after delay
-    setTimeout(() => {
+    if (contactResetTimeoutRef.current !== null) {
+      window.clearTimeout(contactResetTimeoutRef.current);
+    }
+
+    contactResetTimeoutRef.current = window.setTimeout(() => {
+      contactResetTimeoutRef.current = null;
       setContactName('');
       setContactEmail('');
       setContactMsg('');
@@ -236,7 +250,7 @@ export const FinderApp: React.FC = () => {
             </p>
 
             {formSubmitted ? (
-              <div className="bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-800/50 rounded-xl p-5 flex flex-col items-center gap-2 animate-in zoom-in-95">
+              <div className="bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-800/50 rounded-xl p-5 flex flex-col items-center gap-2 animate-pop-in">
                 <Send className="w-8 h-8 text-emerald-500" />
                 <span className="font-bold">Message Sent Successfully!</span>
                 <span className="text-xs text-center opacity-80 mt-1">
