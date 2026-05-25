@@ -155,7 +155,7 @@ export const FinderApp: React.FC = () => {
               <div className="flex flex-col gap-1 relative">
                 <div className="absolute -left-[27px] top-1.5 w-3 h-3 rounded-full bg-blue-500 border-2 border-slate-50 dark:border-zinc-950" />
                 <div className="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center">
-                  <h3 className="font-bold text-slate-900 dark:text-white text-base">Senior Frontend Architect</h3>
+                  <h3 className="font-bold text-slate-900 dark:text-white text-base">Frontend Architect</h3>
                   <span className="text-xs text-blue-600 dark:text-sky-400 font-semibold flex items-center gap-1.5 mt-1 sm:mt-0">
                     <Calendar className="w-3.5 h-3.5" /> 2024 - Present
                   </span>
@@ -165,23 +165,6 @@ export const FinderApp: React.FC = () => {
                   - Spearheaded migration of legacy dashboards to modern React + Vite layouts, achieving 40% faster render speeds.<br />
                   - Implemented reusable core UI layout system and high-performance interactive visual graphics.<br />
                   - Led a team of 4 frontend engineers setting high quality code metrics.
-                </p>
-              </div>
-
-              {/* Timeline item 2 */}
-              <div className="flex flex-col gap-1 relative mt-2">
-                <div className="absolute -left-[27px] top-1.5 w-3 h-3 rounded-full bg-slate-400 dark:bg-zinc-600 border-2 border-slate-50 dark:border-zinc-950" />
-                <div className="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center">
-                  <h3 className="font-bold text-slate-900 dark:text-white text-base">Full-Stack Engineer</h3>
-                  <span className="text-xs text-slate-500 dark:text-zinc-400 font-semibold flex items-center gap-1.5 mt-1 sm:mt-0">
-                    <Calendar className="w-3.5 h-3.5" /> 2021 - 2024
-                  </span>
-                </div>
-                <span className="text-xs text-slate-500 dark:text-zinc-400 font-medium">Digital Agency Labs</span>
-                <p className="text-slate-600 dark:text-zinc-300 mt-2 leading-relaxed text-xs">
-                  - Designed and deployed REST and GraphQL microservices in Node.js and AWS lambda serverless modules.<br />
-                  - Built responsive custom websites and desktop web views with Tailwind CSS and Next.js.<br />
-                  - Reduced API latency by 35% through Redis caching mechanisms and DB indexing optimization.
                 </p>
               </div>
             </div>

@@ -1,0 +1,5 @@
+:8080 {
+	root * C:/Users/Ilgaz/Documents/website/site/dist
+	try_files {path} /index.html
+	file_server
+}
