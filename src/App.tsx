@@ -13,6 +13,7 @@ export const App: React.FC = () => {
   const isDarkMode = useWindowStore((state) => state.isDarkMode);
   const wallpaperId = useWindowStore((state) => state.wallpaperId);
   const systemBrightness = useWindowStore((state) => state.systemBrightness);
+  const bootSystem = useWindowStore((state) => state.bootSystem);
 
   const [renderLockScreen, setRenderLockScreen] = React.useState(isLocked);
   const isUnlocking = renderLockScreen && !isLocked;
@@ -29,10 +30,6 @@ export const App: React.FC = () => {
     setRenderLockScreen(false);
   };
 
-  if (!isBooted) {
-    return <BootScreen />;
-  }
-
   // Calculate overlay opacity for display brightness simulation
   const brightnessOverlayOpacity = (100 - systemBrightness) / 100 * 0.85;
 
@@ -41,7 +38,6 @@ export const App: React.FC = () => {
       className={`relative w-screen h-screen overflow-hidden flex flex-col font-sans select-none transition-colors duration-300 ${
         isDarkMode ? 'dark bg-zinc-950 text-zinc-100' : 'bg-slate-100 text-zinc-800'
       }`}
-      style={{ height: '100dvh' }}
     >
       {/* Background wallpaper */}
       <WallpaperBackground wallpaperId={wallpaperId} isLocked={isLocked} />
@@ -88,6 +84,11 @@ export const App: React.FC = () => {
       {/* Lock Screen Overlay */}
       {renderLockScreen && (
         <LockScreen onUnlockComplete={handleUnlockComplete} />
+      )}
+
+      {/* Boot Screen Overlay */}
+      {!isBooted && (
+        <BootScreen onBootComplete={bootSystem} />
       )}
 
       {/* Brightness Overlay (Simulates screen dimming) */}
