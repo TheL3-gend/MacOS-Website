@@ -103,7 +103,7 @@ export const Dock: React.FC = () => {
       const center = rect.left + rect.width / 2;
       const distance = Math.abs(e.clientX - center);
       
-      const maxDistance = 180;
+      const maxDistance = 70;
       let scale = 1;
       
       if (distance < maxDistance) {
