@@ -9,6 +9,10 @@ interface DockItem {
   bgClass: string;
 }
 
+interface DockProps {
+  isPhoneLandscape?: boolean;
+}
+
 // Define dock icons with macOS-style squircle gradients and layouts.
 const DOCK_ITEMS: DockItem[] = [
   {
@@ -76,7 +80,7 @@ const DOCK_ITEMS: DockItem[] = [
   },
 ];
 
-export const Dock: React.FC = () => {
+export const Dock: React.FC<DockProps> = ({ isPhoneLandscape = false }) => {
   const openWindow = useWindowStore((state) => state.openWindow);
   const focusWindow = useWindowStore((state) => state.focusWindow);
   const windowIndicatorSignature = useWindowStore((state) =>
@@ -110,6 +114,7 @@ export const Dock: React.FC = () => {
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
+    if (isPhoneLandscape) return;
     if (!dockRef.current) return;
     const dock = dockRef.current;
     const children = dock.querySelectorAll<HTMLElement>('.dock-item-container');
@@ -141,6 +146,7 @@ export const Dock: React.FC = () => {
   };
 
   const handleMouseLeave = () => {
+    if (isPhoneLandscape) return;
     if (!dockRef.current) return;
     const children = dockRef.current.querySelectorAll<HTMLElement>('.dock-item-container');
     
@@ -154,13 +160,18 @@ export const Dock: React.FC = () => {
   };
 
   return (
-    <div className="flex justify-center pb-3 pointer-events-none select-none">
+    <div
+      className={`flex justify-center pointer-events-none select-none ${isPhoneLandscape ? 'pb-1' : 'pb-3'}`}
+      style={isPhoneLandscape ? { paddingBottom: 'max(0.25rem, env(safe-area-inset-bottom))' } : undefined}
+    >
       <div
         ref={dockRef}
-        onMouseMove={handleMouseMove}
-        onMouseLeave={handleMouseLeave}
-        className="pointer-events-auto flex items-end gap-3 px-4 py-2.5 rounded-[24px] glass border border-white/20 shadow-2xl relative transition-all"
-        style={{ height: '70px' }}
+        onMouseMove={isPhoneLandscape ? undefined : handleMouseMove}
+        onMouseLeave={isPhoneLandscape ? undefined : handleMouseLeave}
+        className={`pointer-events-auto flex items-end glass border border-white/20 shadow-2xl relative transition-all ${
+          isPhoneLandscape ? 'gap-2 px-3 py-2 rounded-[20px]' : 'gap-3 px-4 py-2.5 rounded-[24px]'
+        }`}
+        style={{ height: isPhoneLandscape ? '58px' : '70px' }}
       >
         {DOCK_ITEMS.map((item) => {
           const windowIndicator = windowIndicators.get(item.id);
@@ -173,16 +184,18 @@ export const Dock: React.FC = () => {
               data-dock-app-id={item.id}
               onClick={() => handleIconClick(item.id)}
               className="dock-item-container flex flex-col items-center justify-end relative cursor-pointer pb-1 group"
-              style={{ width: '48px', height: '100%' }}
+              style={{ width: isPhoneLandscape ? '40px' : '48px', height: '100%' }}
             >
               {/* Tooltip */}
-              <div className="absolute -top-10 left-1/2 -translate-x-1/2 px-2.5 py-1 bg-zinc-900/90 dark:bg-black/80 backdrop-blur border border-white/10 rounded-md text-[10px] text-white font-semibold opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap shadow-md">
+              <div className={`absolute -top-10 left-1/2 -translate-x-1/2 px-2.5 py-1 bg-zinc-900/90 dark:bg-black/80 backdrop-blur border border-white/10 rounded-md text-[10px] text-white font-semibold opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap shadow-md ${
+                isPhoneLandscape ? 'hidden' : ''
+              }`}>
                 {item.name}
               </div>
 
               {/* Icon squircle frame */}
               <div
-                className={`dock-icon-wrap w-12 h-12 rounded-[13px] flex items-center justify-center select-none shadow-md transform transition-all ${item.bgClass}`}
+                className={`dock-icon-wrap ${isPhoneLandscape ? 'w-10 h-10 rounded-xl' : 'w-12 h-12 rounded-[13px]'} flex items-center justify-center select-none shadow-md transform transition-all ${item.bgClass}`}
                 style={{ transition: 'margin-top 0.1s ease-out, transform 0.05s ease-out' }}
               >
                 {item.icon}

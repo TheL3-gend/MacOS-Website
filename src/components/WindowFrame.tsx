@@ -6,6 +6,7 @@ interface WindowFrameProps {
   id: string;
   title: string;
   children: React.ReactNode;
+  isPhoneLandscape?: boolean;
 }
 
 type ResizeDirection = 'r' | 'b' | 'br';
@@ -32,6 +33,13 @@ const getFullscreenFrame = () => ({
   left: 0,
   width: window.innerWidth,
   height: window.innerHeight - MENU_BAR_HEIGHT,
+});
+
+const getPhoneLandscapeFrame = () => ({
+  top: 34,
+  left: 8,
+  width: Math.max(320, window.innerWidth - 16),
+  height: Math.max(232, window.innerHeight - 104),
 });
 
 const getDockTargetCenter = (appId: string) => {
@@ -66,7 +74,12 @@ const getDockTargetOffset = (
   };
 };
 
-export const WindowFrame: React.FC<WindowFrameProps> = ({ id, title, children }) => {
+export const WindowFrame: React.FC<WindowFrameProps> = ({
+  id,
+  title,
+  children,
+  isPhoneLandscape = false,
+}) => {
   const win = useWindowStore((state) => state.windows[id]);
   const activeWindow = useWindowStore((state) => state.activeWindow);
   const closeWindow = useWindowStore((state) => state.closeWindow);
@@ -114,14 +127,16 @@ export const WindowFrame: React.FC<WindowFrameProps> = ({ id, title, children })
     if (windowRef.current) {
       const currentPosition = latestPositionRef.current;
       const currentSize = latestSizeRef.current;
-      const currentFrame = isMaximized
-        ? getFullscreenFrame()
-        : {
-            top: currentPosition.y,
-            left: currentPosition.x,
-            width: currentSize.width,
-            height: currentSize.height,
-          };
+      const currentFrame = isPhoneLandscape
+        ? getPhoneLandscapeFrame()
+        : isMaximized
+          ? getFullscreenFrame()
+          : {
+              top: currentPosition.y,
+              left: currentPosition.x,
+              width: currentSize.width,
+              height: currentSize.height,
+            };
       const dockTargetOffset = getDockTargetOffset(currentFrame, id);
 
       if (isMinimized) {
@@ -206,13 +221,13 @@ export const WindowFrame: React.FC<WindowFrameProps> = ({ id, title, children })
     }
     prevMinimizedRef.current = isMinimized;
     prevOpenRef.current = isOpen;
-  }, [id, isMaximized, isMinimized, isOpen]);
+  }, [id, isMaximized, isMinimized, isOpen, isPhoneLandscape]);
 
   React.useLayoutEffect(() => {
     const element = windowRef.current;
     const wasMaximized = prevMaximizedRef.current;
 
-    if (!isOpen || isMinimized || !element || wasMaximized === isMaximized) {
+    if (isPhoneLandscape || !isOpen || isMinimized || !element || wasMaximized === isMaximized) {
       prevMaximizedRef.current = isMaximized;
       return;
     }
@@ -259,13 +274,13 @@ export const WindowFrame: React.FC<WindowFrameProps> = ({ id, title, children })
     );
 
     prevMaximizedRef.current = isMaximized;
-  }, [isMaximized, isMinimized, isOpen]);
+  }, [isMaximized, isMinimized, isOpen, isPhoneLandscape]);
 
-  if (!isOpen) return null;
+  if (!isOpen || (isPhoneLandscape && (isMinimized || activeWindow !== id))) return null;
 
   // Handle Dragging
   const handleDragStart = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (isMaximized || e.button !== 0) return;
+    if (isPhoneLandscape || isMaximized || e.button !== 0) return;
 
     const element = windowRef.current;
     if (!element) return;
@@ -354,7 +369,7 @@ export const WindowFrame: React.FC<WindowFrameProps> = ({ id, title, children })
 
   // Handle Resizing
   const handleResizeStart = (e: React.PointerEvent<HTMLDivElement>, direction: ResizeDirection) => {
-    if (e.button !== 0) return;
+    if (isPhoneLandscape || e.button !== 0) return;
 
     const element = windowRef.current;
     if (!element) return;
@@ -447,27 +462,37 @@ export const WindowFrame: React.FC<WindowFrameProps> = ({ id, title, children })
   };
 
   // Combine inline styles for dynamic resizing / positioning
-  const windowStyle: React.CSSProperties = isMaximized
+  const windowStyle: React.CSSProperties = isPhoneLandscape
     ? {
         position: 'absolute',
-        top: '28px', // height of menu bar
-        left: '0px',
-        width: '100vw',
-        height: 'calc(100vh - 28px)',
+        top: 'calc(env(safe-area-inset-top) + 34px)',
+        left: 'calc(env(safe-area-inset-left) + 8px)',
+        width: 'calc(100vw - env(safe-area-inset-left) - env(safe-area-inset-right) - 16px)',
+        height: 'max(232px, calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 104px))',
         zIndex: zIndex,
       }
-    : {
-        position: 'absolute',
-        top: `${position.y}px`,
-        left: `${position.x}px`,
-        width: `${size.width}px`,
-        height: `${size.height}px`,
-        zIndex: zIndex,
-      };
+    : isMaximized
+      ? {
+          position: 'absolute',
+          top: '28px', // height of menu bar
+          left: '0px',
+          width: '100vw',
+          height: 'calc(100vh - 28px)',
+          zIndex: zIndex,
+        }
+      : {
+          position: 'absolute',
+          top: `${position.y}px`,
+          left: `${position.x}px`,
+          width: `${size.width}px`,
+          height: `${size.height}px`,
+          zIndex: zIndex,
+        };
 
   return (
     <div
       ref={windowRef}
+      data-app-window-id={id}
       style={windowStyle}
       onClick={() => focusWindow(id)}
       className={`window-frame flex flex-col rounded-xl overflow-hidden glass-panel shadow-2xl transition-shadow border border-white/20 select-none ${
@@ -477,11 +502,15 @@ export const WindowFrame: React.FC<WindowFrameProps> = ({ id, title, children })
       {/* Title Bar */}
       <div
         onPointerDown={handleDragStart}
-        className="window-titlebar h-10 px-4 flex items-center justify-between border-b border-black/10 dark:border-white/10 cursor-grab active:cursor-grabbing shrink-0 relative"
+        className={`window-titlebar flex items-center justify-between border-b border-black/10 dark:border-white/10 shrink-0 relative ${
+          isPhoneLandscape
+            ? 'h-9 px-2 cursor-default'
+            : 'h-10 px-4 cursor-grab active:cursor-grabbing'
+        }`}
       >
         {/* macOS Traffic Lights (Window Controls) */}
         <div
-          className="flex items-center gap-2 relative z-10"
+          className={`flex items-center relative z-10 ${isPhoneLandscape ? 'gap-0.5' : 'gap-2'}`}
           onPointerDown={(e) => e.stopPropagation()}
           onClick={(e) => e.stopPropagation()}
         >
@@ -492,9 +521,19 @@ export const WindowFrame: React.FC<WindowFrameProps> = ({ id, title, children })
               e.stopPropagation();
               closeWindow(id);
             }}
-            className="w-3.5 h-3.5 rounded-full mac-traffic-red hover:brightness-75 transition-all flex items-center justify-center text-[8px] text-red-950 font-bold group"
+            className={`rounded-full hover:brightness-90 transition-all flex items-center justify-center text-[8px] text-red-950 font-bold group ${
+              isPhoneLandscape ? 'w-8 h-8' : 'w-3.5 h-3.5 mac-traffic-red hover:brightness-75'
+            }`}
           >
-            <span className="opacity-0 group-hover:opacity-100 select-none">x</span>
+            <span
+              className={`select-none ${
+                isPhoneLandscape
+                  ? 'w-3.5 h-3.5 rounded-full mac-traffic-red flex items-center justify-center'
+                  : 'opacity-0 group-hover:opacity-100'
+              }`}
+            >
+              x
+            </span>
           </button>
 
           <button
@@ -504,9 +543,19 @@ export const WindowFrame: React.FC<WindowFrameProps> = ({ id, title, children })
               e.stopPropagation();
               minimizeWindow(id);
             }}
-            className="w-3.5 h-3.5 rounded-full mac-traffic-yellow hover:brightness-75 transition-all flex items-center justify-center text-[8px] text-yellow-950 font-bold group"
+            className={`rounded-full hover:brightness-90 transition-all flex items-center justify-center text-[8px] text-yellow-950 font-bold group ${
+              isPhoneLandscape ? 'w-8 h-8' : 'w-3.5 h-3.5 mac-traffic-yellow hover:brightness-75'
+            }`}
           >
-            <span className="opacity-0 group-hover:opacity-100 select-none">-</span>
+            <span
+              className={`select-none ${
+                isPhoneLandscape
+                  ? 'w-3.5 h-3.5 rounded-full mac-traffic-yellow flex items-center justify-center'
+                  : 'opacity-0 group-hover:opacity-100'
+              }`}
+            >
+              -
+            </span>
           </button>
 
           <button
@@ -517,21 +566,31 @@ export const WindowFrame: React.FC<WindowFrameProps> = ({ id, title, children })
               focusWindow(id);
               toggleMaximizeWindow(id);
             }}
-            className="w-3.5 h-3.5 rounded-full mac-traffic-green hover:brightness-75 transition-all flex items-center justify-center text-[8px] text-green-950 font-bold group"
+            className={`rounded-full hover:brightness-90 transition-all flex items-center justify-center text-[8px] text-green-950 font-bold group ${
+              isPhoneLandscape ? 'w-8 h-8' : 'w-3.5 h-3.5 mac-traffic-green hover:brightness-75'
+            }`}
           >
-            <span className="opacity-0 group-hover:opacity-100 select-none">+</span>
+            <span
+              className={`select-none ${
+                isPhoneLandscape
+                  ? 'w-3.5 h-3.5 rounded-full mac-traffic-green flex items-center justify-center'
+                  : 'opacity-0 group-hover:opacity-100'
+              }`}
+            >
+              +
+            </span>
           </button>
         </div>
 
         {/* Title Text */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <span className="text-xs font-semibold text-zinc-800 dark:text-zinc-200">
+          <span className={`${isPhoneLandscape ? 'text-[11px]' : 'text-xs'} font-semibold text-zinc-800 dark:text-zinc-200`}>
             {title}
           </span>
         </div>
 
         {/* Empty placeholder for alignment */}
-        <div className="w-14" />
+        <div className={isPhoneLandscape ? 'w-[5.75rem]' : 'w-14'} />
       </div>
 
       {/* Window Content */}
@@ -540,7 +599,7 @@ export const WindowFrame: React.FC<WindowFrameProps> = ({ id, title, children })
       </div>
 
       {/* Resize Anchors (Only show if not maximized) */}
-      {!isMaximized && (
+      {!isPhoneLandscape && !isMaximized && (
         <>
           {/* Right Handle */}
           <div

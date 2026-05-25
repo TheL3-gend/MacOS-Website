@@ -44,7 +44,11 @@ const getDefaultIconPosition = (
   };
 };
 
-export const Desktop: React.FC = () => {
+interface DesktopProps {
+  isPhoneLandscape?: boolean;
+}
+
+export const Desktop: React.FC<DesktopProps> = ({ isPhoneLandscape = false }) => {
   const openWindow = useWindowStore((state) => state.openWindow);
   const focusWindow = useWindowStore((state) => state.focusWindow);
   const desktopRef = React.useRef<HTMLDivElement>(null);
@@ -156,6 +160,7 @@ export const Desktop: React.FC = () => {
   }, [icons]);
 
   const handleIconPointerDown = (e: React.PointerEvent<HTMLButtonElement>, id: string) => {
+    if (isPhoneLandscape) return;
     if (e.button !== 0) return;
 
     const desktop = desktopRef.current;
@@ -264,10 +269,15 @@ export const Desktop: React.FC = () => {
   };
 
   return (
-    <div ref={desktopRef} className="relative w-full h-full flex-1 overflow-hidden p-6 pt-12 select-none">
+    <div
+      ref={desktopRef}
+      className={`relative w-full h-full flex-1 overflow-hidden select-none ${
+        isPhoneLandscape ? 'p-0' : 'p-6 pt-12'
+      }`}
+    >
       
       {/* Desktop shortcuts */}
-      <div className="absolute inset-0">
+      <div className={isPhoneLandscape ? 'phone-desktop-icons' : 'absolute inset-0'}>
         {icons.map((ico) => {
           const position = iconPositions[ico.id];
           const isDragging = draggingIconId === ico.id;
@@ -277,25 +287,28 @@ export const Desktop: React.FC = () => {
             key={ico.id}
             type="button"
             aria-label={ico.name}
-            onDoubleClick={() => handleIconDoubleClick(ico.id)}
+            onClick={isPhoneLandscape ? () => handleIconDoubleClick(ico.id) : undefined}
+            onDoubleClick={isPhoneLandscape ? undefined : () => handleIconDoubleClick(ico.id)}
             onPointerDown={(e) => handleIconPointerDown(e, ico.id)}
-            className="desktop-icon absolute flex flex-col items-center gap-1 text-center group cursor-grab active:cursor-grabbing"
+            className={`desktop-icon flex flex-col items-center gap-1 text-center group ${
+              isPhoneLandscape ? 'relative cursor-pointer' : 'absolute cursor-grab active:cursor-grabbing'
+            }`}
             style={{
-              left: position ? `${position.x}px` : undefined,
-              top: position ? `${position.y}px` : undefined,
-              width: `${ICON_WIDTH}px`,
+              left: !isPhoneLandscape && position ? `${position.x}px` : undefined,
+              top: !isPhoneLandscape && position ? `${position.y}px` : undefined,
+              width: isPhoneLandscape ? '62px' : `${ICON_WIDTH}px`,
               zIndex: isDragging ? 20 : 1,
-              opacity: position ? 1 : 0,
+              opacity: isPhoneLandscape || position ? 1 : 0,
             }}
           >
             {/* Desktop Icon Squircle frame */}
             <div
-              className={`w-12 h-12 rounded-[13px] flex items-center justify-center shadow-lg group-hover:brightness-95 group-active:scale-95 transition-all ${ico.bgClass}`}
+              className={`${isPhoneLandscape ? 'w-10 h-10 rounded-xl' : 'w-12 h-12 rounded-[13px]'} flex items-center justify-center shadow-lg group-hover:brightness-95 group-active:scale-95 transition-all ${ico.bgClass}`}
             >
               {ico.icon}
             </div>
             {/* Label with light drop shadow for high readability */}
-            <span className="text-[10px] text-white font-semibold tracking-wide drop-shadow-md bg-black/15 group-hover:bg-black/30 px-1.5 py-0.5 rounded-md transition-all select-none">
+            <span className={`${isPhoneLandscape ? 'text-[9px]' : 'text-[10px]'} text-white font-semibold tracking-wide drop-shadow-md bg-black/15 group-hover:bg-black/30 px-1.5 py-0.5 rounded-md transition-all select-none`}>
               {ico.name}
             </span>
           </button>
@@ -304,27 +317,27 @@ export const Desktop: React.FC = () => {
       </div>
 
       {/* Render all open application windows wrapped inside WindowFrame */}
-      <WindowFrame id="finder" title="Finder">
+      <WindowFrame id="finder" title="Finder" isPhoneLandscape={isPhoneLandscape}>
         <FinderApp />
       </WindowFrame>
 
-      <WindowFrame id="terminal" title="Terminal">
+      <WindowFrame id="terminal" title="Terminal" isPhoneLandscape={isPhoneLandscape}>
         <TerminalApp />
       </WindowFrame>
 
-      <WindowFrame id="safari" title="Safari">
+      <WindowFrame id="safari" title="Safari" isPhoneLandscape={isPhoneLandscape}>
         <SafariApp />
       </WindowFrame>
 
-      <WindowFrame id="vscode" title="VS Code">
+      <WindowFrame id="vscode" title="VS Code" isPhoneLandscape={isPhoneLandscape}>
         <VSCodeApp />
       </WindowFrame>
 
-      <WindowFrame id="notes" title="Notes">
+      <WindowFrame id="notes" title="Notes" isPhoneLandscape={isPhoneLandscape}>
         <NotesApp />
       </WindowFrame>
 
-      <WindowFrame id="settings" title="System Settings">
+      <WindowFrame id="settings" title="System Settings" isPhoneLandscape={isPhoneLandscape}>
         <SettingsApp />
       </WindowFrame>
 

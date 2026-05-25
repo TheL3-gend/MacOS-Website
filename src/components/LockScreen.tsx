@@ -96,7 +96,7 @@ export const LockScreen: React.FC<LockScreenProps> = ({ onUnlockComplete }) => {
 
   return (
     <div
-      className="fixed inset-0 z-40 overflow-hidden flex flex-col justify-between items-center text-white p-12 select-none"
+      className="lock-screen fixed inset-0 z-40 overflow-hidden flex flex-col justify-between items-center text-white p-12 select-none"
       style={lockScreenStyle}
       onTransitionEnd={handleTransitionEnd}
     >

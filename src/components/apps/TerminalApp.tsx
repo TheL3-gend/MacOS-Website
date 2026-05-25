@@ -197,7 +197,7 @@ export const TerminalApp: React.FC = () => {
   return (
     <div
       onClick={handleTerminalClick}
-      className={`w-full h-full p-4 font-mono text-xs overflow-hidden flex flex-col cursor-text transition-colors duration-200 ${getThemeClass()}`}
+      className={`terminal-app w-full h-full p-4 font-mono text-xs overflow-hidden flex flex-col cursor-text transition-colors duration-200 ${getThemeClass()}`}
     >
       {/* Scrollable history logs */}
       <div ref={containerRef} className="flex-1 overflow-y-auto flex flex-col gap-1 pr-1">

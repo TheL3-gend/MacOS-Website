@@ -134,9 +134,9 @@ export const VSCodeApp: React.FC = () => {
   };
 
   return (
-    <div className="flex h-full w-full bg-zinc-900 text-zinc-300 select-none">
+    <div className="vscode-app flex h-full w-full bg-zinc-900 text-zinc-300 select-none">
       {/* Activity Bar (Slim left side) */}
-      <div className="w-12 border-r border-zinc-800 bg-zinc-950 flex flex-col justify-between items-center py-4 shrink-0 text-zinc-500">
+      <div className="vscode-activity-bar w-12 border-r border-zinc-800 bg-zinc-950 flex flex-col justify-between items-center py-4 shrink-0 text-zinc-500">
         <div className="flex flex-col gap-5 items-center">
           <button className="text-zinc-200 hover:text-white transition-all">
             <Files className="w-5 h-5" />
@@ -157,7 +157,7 @@ export const VSCodeApp: React.FC = () => {
 
       {/* Side Bar (Explorer Tree) */}
       {explorerOpen && (
-        <div className="w-48 bg-zinc-900 border-r border-zinc-800 p-2 shrink-0 flex flex-col">
+        <div className="vscode-sidebar w-48 bg-zinc-900 border-r border-zinc-800 p-2 shrink-0 flex flex-col">
           <div className="flex items-center justify-between px-2 text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
             <span>Explorer</span>
           </div>
@@ -196,9 +196,9 @@ export const VSCodeApp: React.FC = () => {
       )}
 
       {/* Editor Main Content Area */}
-      <div className="flex-1 flex flex-col bg-zinc-950 overflow-hidden">
+      <div className="vscode-editor flex-1 flex flex-col bg-zinc-950 overflow-hidden">
         {/* Editor Tabs bar */}
-        <div className="h-9 border-b border-zinc-800 bg-zinc-900 flex items-center shrink-0">
+        <div className="vscode-tabs h-9 border-b border-zinc-800 bg-zinc-900 flex items-center shrink-0">
           {Object.keys(FILES).map((fname) => (
             <button
               key={fname}
@@ -216,7 +216,7 @@ export const VSCodeApp: React.FC = () => {
         </div>
 
         {/* Highlighted code editor window pane */}
-        <div className="flex-1 overflow-auto p-4 select-text selection:bg-indigo-500/30">
+        <div className="vscode-code flex-1 overflow-auto p-4 select-text selection:bg-indigo-500/30">
           <pre className="text-zinc-300 select-text leading-relaxed">
             <code>{renderHighlightedCode(activeFile.content)}</code>
           </pre>

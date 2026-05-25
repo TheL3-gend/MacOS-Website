@@ -18,7 +18,7 @@ export const NotesApp: React.FC = () => {
   }, [noteContent]);
 
   return (
-    <div className="flex flex-col h-full w-full bg-amber-50/40 dark:bg-zinc-950 text-slate-800 dark:text-zinc-200 select-none">
+    <div className="notes-app flex flex-col h-full w-full bg-amber-50/40 dark:bg-zinc-950 text-slate-800 dark:text-zinc-200 select-none">
       {/* Notes app header status bar */}
       <div className="h-9 px-3 bg-amber-100/30 dark:bg-zinc-900/50 border-b border-amber-200/20 dark:border-zinc-800/60 flex items-center justify-between shrink-0 text-[10px] font-semibold text-slate-500">
         <span className="flex items-center gap-1.5">

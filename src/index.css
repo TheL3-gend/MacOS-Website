@@ -150,11 +150,14 @@ textarea:not(:disabled),
   cursor: var(--cursor-zoom-out), zoom-out;
 }
 
-.window-frame,
 .window-titlebar,
 .window-resize-handle,
 .desktop-icon {
   touch-action: none;
+}
+
+.phone-landscape .window-frame {
+  touch-action: pan-y;
 }
 
 body.window-is-dragging,
@@ -468,4 +471,210 @@ body.desktop-icon-is-dragging * {
   height: 100%;
   opacity: 0.15;
   pointer-events: none;
+}
+
+/* Phone landscape macOS mode */
+.phone-landscape .phone-desktop-icons {
+  position: absolute;
+  top: calc(env(safe-area-inset-top) + 40px);
+  left: calc(env(safe-area-inset-left) + 14px);
+  display: grid;
+  grid-template-columns: repeat(6, 62px);
+  gap: 10px;
+  z-index: 1;
+}
+
+.phone-landscape .finder-app,
+.phone-landscape .settings-app {
+  flex-direction: column;
+  min-height: 0;
+}
+
+.phone-landscape .finder-sidebar,
+.phone-landscape .settings-sidebar {
+  width: 100%;
+  border-right: 0;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.24);
+  padding: 6px 8px;
+  gap: 0;
+}
+
+.phone-landscape .finder-sidebar-label {
+  display: none;
+}
+
+.phone-landscape .finder-tab-list {
+  flex-direction: row;
+  gap: 4px;
+  margin-top: 0;
+  overflow-x: auto;
+  padding-bottom: 1px;
+}
+
+.phone-landscape .finder-tab-button,
+.phone-landscape .settings-tab {
+  width: auto;
+  flex: 0 0 auto;
+  white-space: nowrap;
+  padding: 6px 9px;
+}
+
+.phone-landscape .finder-content,
+.phone-landscape .settings-content {
+  min-height: 0;
+  padding: 12px;
+  gap: 12px;
+  font-size: 12px;
+}
+
+.phone-landscape .finder-content h1,
+.phone-landscape .settings-content h2 {
+  font-size: 1.1rem;
+  line-height: 1.25;
+}
+
+.phone-landscape .finder-content h2,
+.phone-landscape .settings-content h3,
+.phone-landscape .settings-content h4 {
+  font-size: 0.82rem;
+}
+
+.phone-landscape .safari-toolbar {
+  height: 36px;
+  padding-left: 8px;
+  padding-right: 8px;
+  gap: 6px;
+}
+
+.phone-landscape .safari-address {
+  max-width: none;
+  height: 24px;
+  padding-left: 8px;
+  padding-right: 8px;
+  font-size: 10px;
+}
+
+.phone-landscape .safari-spacer {
+  display: none;
+}
+
+.phone-landscape .safari-tabs {
+  height: 30px;
+  overflow-x: auto;
+  align-items: end;
+  padding-left: 8px;
+  padding-right: 8px;
+}
+
+.phone-landscape .safari-tab {
+  flex: 0 0 auto;
+  max-width: 124px;
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+.phone-landscape .safari-content {
+  min-height: 0;
+  padding: 10px;
+}
+
+.phone-landscape .safari-project {
+  max-width: none;
+  gap: 10px;
+}
+
+.phone-landscape .safari-tags {
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.phone-landscape .safari-bid-card {
+  padding: 12px;
+  gap: 12px;
+  flex-direction: row;
+  align-items: stretch;
+}
+
+.phone-landscape .safari-nft {
+  width: 96px;
+  height: 96px;
+  padding: 10px;
+  font-size: 10px;
+}
+
+.phone-landscape .safari-ai-project {
+  height: 100%;
+  min-height: 0;
+  gap: 10px;
+}
+
+.phone-landscape .vscode-activity-bar {
+  width: 40px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+.phone-landscape .vscode-sidebar {
+  display: none;
+}
+
+.phone-landscape .vscode-tabs {
+  overflow-x: auto;
+}
+
+.phone-landscape .vscode-tabs > button {
+  flex: 0 0 auto;
+  padding-left: 12px;
+  padding-right: 12px;
+}
+
+.phone-landscape .vscode-code {
+  padding: 10px;
+}
+
+.phone-landscape .terminal-app {
+  padding: 10px;
+  font-size: 11px;
+}
+
+.phone-landscape .notes-app textarea {
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.phone-landscape .notes-app > div:nth-child(2) {
+  padding: 10px;
+}
+
+.phone-landscape .boot-screen img {
+  width: 7rem;
+  height: 7rem;
+  margin-bottom: 1.5rem;
+}
+
+.phone-landscape .lock-screen {
+  padding: 32px 36px 14px;
+}
+
+.phone-landscape .lock-screen h1 {
+  font-size: 3.25rem;
+  margin-top: 0.25rem;
+}
+
+.phone-landscape .lock-screen form {
+  width: 15rem;
+}
+
+@media (max-height: 380px) {
+  .phone-landscape .lock-screen {
+    padding-top: 24px;
+  }
+
+  .phone-landscape .lock-screen h1 {
+    font-size: 2.8rem;
+  }
+
+  .phone-landscape .lock-screen button span {
+    font-size: 10px;
+  }
 }

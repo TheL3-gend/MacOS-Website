@@ -159,9 +159,9 @@ export const SafariApp: React.FC = () => {
   const progressPercent = Math.round((completedCount / habits.length) * 100);
 
   return (
-    <div className="w-full h-full flex flex-col bg-zinc-100 dark:bg-zinc-950 text-slate-800 dark:text-zinc-200 select-none">
+    <div className="safari-app w-full h-full flex flex-col bg-zinc-100 dark:bg-zinc-950 text-slate-800 dark:text-zinc-200 select-none">
       {/* Browser Navbar Header */}
-      <div className="h-11 px-3 bg-slate-200/50 dark:bg-zinc-900/50 border-b border-slate-300/40 dark:border-zinc-800/60 flex items-center gap-3 shrink-0">
+      <div className="safari-toolbar h-11 px-3 bg-slate-200/50 dark:bg-zinc-900/50 border-b border-slate-300/40 dark:border-zinc-800/60 flex items-center gap-3 shrink-0">
         {/* Navigation Buttons */}
         <div className="flex items-center gap-1 text-slate-500">
           <button
@@ -184,21 +184,21 @@ export const SafariApp: React.FC = () => {
         </div>
 
         {/* Address Input Bar */}
-        <div className="flex-1 max-w-lg mx-auto h-7 bg-white dark:bg-zinc-900 border border-slate-300/50 dark:border-zinc-800 rounded-lg flex items-center justify-center px-3 text-xs gap-1.5 text-slate-600 dark:text-zinc-400">
+        <div className="safari-address flex-1 max-w-lg mx-auto h-7 bg-white dark:bg-zinc-900 border border-slate-300/50 dark:border-zinc-800 rounded-lg flex items-center justify-center px-3 text-xs gap-1.5 text-slate-600 dark:text-zinc-400">
           <Globe className="w-3.5 h-3.5 text-slate-400" />
           <span className="truncate select-text">{searchUrl}</span>
         </div>
         
-        <div className="w-16" /> {/* Spacer */}
+        <div className="safari-spacer w-16" /> {/* Spacer */}
       </div>
 
       {/* Tabs Menu */}
-      <div className="flex items-end px-3 gap-1 bg-slate-200/20 dark:bg-zinc-900/10 border-b border-slate-300/20 dark:border-zinc-900 shrink-0 text-[11px] h-8 font-medium">
+      <div className="safari-tabs flex items-end px-3 gap-1 bg-slate-200/20 dark:bg-zinc-900/10 border-b border-slate-300/20 dark:border-zinc-900 shrink-0 text-[11px] h-8 font-medium">
         {projects.map((proj, idx) => (
           <button
             key={proj.id}
             onClick={() => handleProjChange(idx)}
-            className={`px-3 py-1 rounded-t-lg border-t border-x flex items-center gap-1.5 transition-all max-w-[140px] truncate ${
+            className={`safari-tab px-3 py-1 rounded-t-lg border-t border-x flex items-center gap-1.5 transition-all max-w-[140px] truncate ${
               activeProjIndex === idx
                 ? 'bg-white dark:bg-zinc-900 border-slate-300/40 dark:border-zinc-800/80 text-blue-600 dark:text-sky-400 font-semibold'
                 : 'bg-slate-200/40 dark:bg-zinc-900/20 border-transparent text-slate-500 hover:bg-slate-200/80 dark:hover:bg-zinc-900/40'
@@ -211,16 +211,16 @@ export const SafariApp: React.FC = () => {
       </div>
 
       {/* Safari Window View Area */}
-      <div className="flex-1 overflow-y-auto p-5 bg-white dark:bg-zinc-900">
+      <div className="safari-content flex-1 overflow-y-auto p-5 bg-white dark:bg-zinc-900">
         
         {/* Render Interactive Mockups */}
         {projects[activeProjIndex].id === 'cosmic-nft' && (
-          <div className="flex flex-col gap-5 max-w-2xl mx-auto">
+          <div className="safari-project flex flex-col gap-5 max-w-2xl mx-auto">
             {/* Description Info Banner */}
             <div className="bg-sky-50 dark:bg-sky-950/20 p-4 rounded-xl border border-sky-200/30 text-xs">
               <span className="font-bold text-sky-700 dark:text-sky-400">Project Overview:</span>
               <p className="mt-1 leading-relaxed text-slate-600 dark:text-zinc-300">{projects[0].desc}</p>
-              <div className="flex gap-2 mt-3">
+              <div className="safari-tags flex gap-2 mt-3">
                 {projects[0].tags.map(t => (
                   <span key={t} className="px-2 py-0.5 bg-sky-200/30 text-sky-700 dark:text-sky-300 rounded font-semibold text-[10px]">{t}</span>
                 ))}
@@ -228,9 +228,9 @@ export const SafariApp: React.FC = () => {
             </div>
 
             {/* Interactive Bid UI Card */}
-            <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-gradient-to-b from-zinc-50 to-zinc-100 dark:from-zinc-900 dark:to-zinc-950 p-6 flex flex-col sm:flex-row gap-6 shadow-md items-center">
+            <div className="safari-bid-card rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-gradient-to-b from-zinc-50 to-zinc-100 dark:from-zinc-900 dark:to-zinc-950 p-6 flex flex-col sm:flex-row gap-6 shadow-md items-center">
               {/* NFT Image Mockup */}
-              <div className="w-40 h-40 rounded-xl bg-gradient-to-tr from-fuchsia-500 via-purple-600 to-indigo-600 flex items-center justify-center text-white font-black text-center text-xs p-4 shadow-inner relative overflow-hidden shrink-0">
+              <div className="safari-nft w-40 h-40 rounded-xl bg-gradient-to-tr from-fuchsia-500 via-purple-600 to-indigo-600 flex items-center justify-center text-white font-black text-center text-xs p-4 shadow-inner relative overflow-hidden shrink-0">
                 <div className="absolute inset-0 bg-black/10 backdrop-blur-[2px]" />
                 <span className="relative z-10 drop-shadow-md tracking-wider">NEBULA-99 COLLAPSAR</span>
               </div>
@@ -292,12 +292,12 @@ export const SafariApp: React.FC = () => {
 
         {/* AI Assistant Chat Interactive Mockup */}
         {projects[activeProjIndex].id === 'ai-code' && (
-          <div className="flex flex-col gap-5 max-w-2xl mx-auto h-[380px]">
+          <div className="safari-ai-project flex flex-col gap-5 max-w-2xl mx-auto h-[380px]">
             {/* Overview banner */}
             <div className="bg-emerald-50 dark:bg-emerald-950/20 p-4 rounded-xl border border-emerald-200/30 text-xs shrink-0">
               <span className="font-bold text-emerald-700 dark:text-emerald-400">Project Overview:</span>
               <p className="mt-1 leading-relaxed text-slate-600 dark:text-zinc-300">{projects[1].desc}</p>
-              <div className="flex gap-2 mt-3">
+              <div className="safari-tags flex gap-2 mt-3">
                 {projects[1].tags.map(t => (
                   <span key={t} className="px-2 py-0.5 bg-emerald-200/30 text-emerald-700 dark:text-emerald-300 rounded font-semibold text-[10px]">{t}</span>
                 ))}
@@ -344,12 +344,12 @@ export const SafariApp: React.FC = () => {
 
         {/* Zen Habits Tracker Interactive Mockup */}
         {projects[activeProjIndex].id === 'zen-habits' && (
-          <div className="flex flex-col gap-5 max-w-xl mx-auto">
+          <div className="safari-project flex flex-col gap-5 max-w-xl mx-auto">
             {/* Overview banner */}
             <div className="bg-amber-50 dark:bg-amber-950/20 p-4 rounded-xl border border-amber-200/30 text-xs">
               <span className="font-bold text-amber-700 dark:text-amber-400">Project Overview:</span>
               <p className="mt-1 leading-relaxed text-slate-600 dark:text-zinc-300">{projects[2].desc}</p>
-              <div className="flex gap-2 mt-3">
+              <div className="safari-tags flex gap-2 mt-3">
                 {projects[2].tags.map(t => (
                   <span key={t} className="px-2 py-0.5 bg-amber-200/30 text-amber-700 dark:text-amber-300 rounded font-semibold text-[10px]">{t}</span>
                 ))}

@@ -58,19 +58,19 @@ export const FinderApp: React.FC = () => {
   };
 
   return (
-    <div className="flex h-full w-full bg-slate-50 dark:bg-zinc-950 text-slate-800 dark:text-zinc-200 select-none">
+    <div className="finder-app flex h-full w-full bg-slate-50 dark:bg-zinc-950 text-slate-800 dark:text-zinc-200 select-none">
       {/* Finder Sidebar */}
-      <div className="w-44 border-r border-slate-200 dark:border-zinc-800 bg-slate-100/50 dark:bg-zinc-900/30 p-2.5 flex flex-col gap-4 shrink-0">
+      <div className="finder-sidebar w-44 border-r border-slate-200 dark:border-zinc-800 bg-slate-100/50 dark:bg-zinc-900/30 p-2.5 flex flex-col gap-4 shrink-0">
         <div>
-          <span className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider px-2">
+          <span className="finder-sidebar-label text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider px-2">
             Favorites
           </span>
-          <div className="flex flex-col gap-0.5 mt-1.5">
+          <div className="finder-tab-list flex flex-col gap-0.5 mt-1.5">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-xs font-medium w-full text-left transition-all ${
+                className={`finder-tab-button flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-xs font-medium w-full text-left transition-all ${
                   activeTab === tab.id
                     ? 'bg-slate-200/80 dark:bg-zinc-800/80 text-blue-600 dark:text-sky-400 font-semibold'
                     : 'hover:bg-slate-200/40 dark:hover:bg-zinc-800/40 text-slate-700 dark:text-zinc-300'
@@ -85,7 +85,7 @@ export const FinderApp: React.FC = () => {
       </div>
 
       {/* Finder Details Pane */}
-      <div className="flex-1 overflow-y-auto p-6 text-sm">
+      <div className="finder-content flex-1 overflow-y-auto p-6 text-sm">
         {/* Render content based on activeTab */}
         {activeTab === 'about' && (
           <div className="flex flex-col gap-6 max-w-xl">
