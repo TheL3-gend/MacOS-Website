@@ -11,6 +11,7 @@ export const NotesApp: React.FC = () => {
 
   useEffect(() => {
     localStorage.setItem('macos_portfolio_note', noteContent);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSavedStatus(true);
     const timer = setTimeout(() => setSavedStatus(false), 800);
     return () => clearTimeout(timer);

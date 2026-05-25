@@ -37,7 +37,7 @@ export const ControlCenter: React.FC<CCProps> = ({ closeCC }) => {
   };
 
   return (
-    <div className="w-[320px] p-3 rounded-2xl glass-panel-dark text-white border border-white/10 shadow-2xl flex flex-col gap-2.5 animate-in fade-in slide-in-from-top-3 duration-200">
+    <div className="w-[320px] p-3 rounded-2xl glass-panel-dark text-white border border-white/10 shadow-2xl flex flex-col gap-2.5 animate-panel-in">
       {/* Top Grid (Toggles & Interactive Blocks) */}
       <div className="grid grid-cols-2 gap-2.5">
         {/* Left Toggle Box (Wifi / Bluetooth / AirDrop) */}

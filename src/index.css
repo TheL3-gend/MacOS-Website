@@ -1,5 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap');
 @import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
 
 @layer base {
   html,
@@ -151,7 +152,8 @@ textarea:not(:disabled),
 
 .window-frame,
 .window-titlebar,
-.window-resize-handle {
+.window-resize-handle,
+.desktop-icon {
   touch-action: none;
 }
 
@@ -183,6 +185,139 @@ body.window-resizing-br * {
   cursor: var(--cursor-diagonal-resize-1), nwse-resize !important;
 }
 
+body.desktop-icon-is-dragging,
+body.desktop-icon-is-dragging * {
+  cursor: var(--cursor-grabbing), grabbing !important;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.theme-transitioning,
+.theme-transitioning *,
+.theme-transitioning *::before,
+.theme-transitioning *::after {
+  transition-property:
+    background-color,
+    border-color,
+    color,
+    fill,
+    stroke,
+    box-shadow,
+    opacity,
+    filter,
+    backdrop-filter,
+    -webkit-backdrop-filter;
+  transition-duration: 900ms;
+  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.theme-switch-wash {
+  position: absolute;
+  inset: 0;
+  z-index: 45;
+  pointer-events: none;
+  animation: theme-switch-wash 940ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animate-fade-in {
+  animation: fade-in 180ms ease-out both;
+}
+
+.animate-dropdown-in {
+  animation: dropdown-in 120ms ease-out both;
+  transform-origin: top left;
+}
+
+.animate-panel-in {
+  animation: panel-in 180ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animate-pop-in {
+  animation: pop-in 180ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animate-spin-slow {
+  animation: spin 8s linear infinite;
+}
+
+.theme-switch-wash-light {
+  background:
+    radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0) 58%),
+    rgba(255, 255, 255, 0.1);
+}
+
+.theme-switch-wash-dark {
+  background:
+    radial-gradient(circle at 50% 0%, rgba(12, 12, 14, 0.48), rgba(12, 12, 14, 0) 60%),
+    rgba(0, 0, 0, 0.12);
+}
+
+@keyframes theme-switch-wash {
+  0% {
+    opacity: 0;
+  }
+
+  45% {
+    opacity: 0.9;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes dropdown-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(-4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 /* Glassmorphism helpers */
 .glass {
   background: rgba(255, 255, 255, 0.2);
@@ -212,6 +347,37 @@ body.window-resizing-br * {
   -webkit-backdrop-filter: blur(30px);
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+}
+
+.dark .glass-panel {
+  background: rgba(10, 10, 10, 0.5);
+  backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(30px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+}
+
+.menu-bar-shell {
+  background: rgba(15, 23, 42, 0.42);
+  backdrop-filter: blur(22px) saturate(1.35);
+  -webkit-backdrop-filter: blur(22px) saturate(1.35);
+  transform: translateZ(0);
+}
+
+.dark .menu-bar-shell {
+  background: rgba(9, 9, 11, 0.48);
+  border-bottom-color: rgba(255, 255, 255, 0.14);
+}
+
+.window-titlebar {
+  background: rgba(241, 245, 249, 0.78);
+  backdrop-filter: blur(22px) saturate(1.25);
+  -webkit-backdrop-filter: blur(22px) saturate(1.25);
+  transform: translateZ(0);
+}
+
+.dark .window-titlebar {
+  background: rgba(39, 39, 42, 0.78);
 }
 
 /* Custom scrollbar */

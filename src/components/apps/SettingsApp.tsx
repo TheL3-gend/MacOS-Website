@@ -1,6 +1,252 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useWindowStore, WALLPAPERS } from '../../store/useWindowStore';
 import { Wifi, Bluetooth, Sun, Moon, Laptop } from 'lucide-react';
+
+type UserAgentBrand = {
+  brand: string;
+  version: string;
+};
+
+type UserAgentHighEntropyValues = {
+  architecture?: string;
+  bitness?: string;
+  model?: string;
+  platform?: string;
+  platformVersion?: string;
+  fullVersionList?: UserAgentBrand[];
+};
+
+type NavigatorUserAgentData = {
+  brands?: UserAgentBrand[];
+  mobile?: boolean;
+  platform?: string;
+  getHighEntropyValues?: (hints: string[]) => Promise<UserAgentHighEntropyValues>;
+};
+
+type HardwareNavigator = Navigator & {
+  deviceMemory?: number;
+  userAgentData?: NavigatorUserAgentData;
+};
+
+type HardwareInfo = {
+  deviceName: string;
+  summary: string;
+  processor: string;
+  graphics: string;
+  memory: string;
+  operatingSystem: string;
+  serialNumber: string;
+};
+
+const unavailable = 'Unavailable in browser';
+
+const initialHardwareInfo: HardwareInfo = {
+  deviceName: 'This Device',
+  summary: 'Detecting hardware...',
+  processor: 'Detecting...',
+  graphics: 'Detecting...',
+  memory: 'Detecting...',
+  operatingSystem: 'Detecting...',
+  serialNumber: unavailable,
+};
+
+const getWindowsName = (version: string): string => {
+  const major = Number(version.split('.')[0]);
+
+  if (major >= 13) {
+    return 'Windows 11';
+  }
+
+  if (major > 0) {
+    return 'Windows 10';
+  }
+
+  return 'Windows';
+};
+
+const getOperatingSystemFromUserAgent = (userAgent: string): string => {
+  const windowsMatch = userAgent.match(/Windows NT ([\d.]+)/);
+  if (windowsMatch) {
+    return 'Windows';
+  }
+
+  const macMatch = userAgent.match(/Mac OS X ([\d_]+)/);
+  if (macMatch?.[1]) {
+    return `macOS ${macMatch[1].replaceAll('_', '.')}`;
+  }
+
+  const androidMatch = userAgent.match(/Android ([\d.]+)/);
+  if (androidMatch?.[1]) {
+    return `Android ${androidMatch[1]}`;
+  }
+
+  if (/iPhone|iPad|iPod/.test(userAgent)) {
+    return 'iOS';
+  }
+
+  if (/Linux/.test(userAgent)) {
+    return 'Linux';
+  }
+
+  return unavailable;
+};
+
+const normalizePlatformName = (platform: string | undefined, userAgent: string): string => {
+  const value = platform?.toLowerCase() ?? '';
+
+  if (value.includes('win')) {
+    return 'Windows';
+  }
+
+  if (value.includes('mac')) {
+    return 'macOS';
+  }
+
+  if (value.includes('android')) {
+    return 'Android';
+  }
+
+  if (value.includes('iphone') || value.includes('ipad') || value.includes('ios')) {
+    return 'iOS';
+  }
+
+  if (value.includes('linux')) {
+    return 'Linux';
+  }
+
+  if (platform) {
+    return platform;
+  }
+
+  return getOperatingSystemFromUserAgent(userAgent);
+};
+
+const getOperatingSystem = (
+  platform: string | undefined,
+  platformVersion: string | undefined,
+  userAgent: string,
+): string => {
+  const normalizedPlatform = normalizePlatformName(platform, userAgent);
+
+  if (normalizedPlatform === 'Windows' && platformVersion && platformVersion !== '0.0.0') {
+    return getWindowsName(platformVersion);
+  }
+
+  if (platformVersion && platformVersion !== '0.0.0' && normalizedPlatform !== unavailable) {
+    return `${normalizedPlatform} ${platformVersion}`;
+  }
+
+  if (normalizedPlatform !== unavailable) {
+    return normalizedPlatform;
+  }
+
+  return getOperatingSystemFromUserAgent(userAgent);
+};
+
+const getDeviceName = (operatingSystem: string, model: string | undefined, isMobile: boolean): string => {
+  if (model) {
+    return model;
+  }
+
+  if (operatingSystem.startsWith('Windows')) {
+    return 'Windows PC';
+  }
+
+  if (operatingSystem.startsWith('macOS')) {
+    return 'Mac';
+  }
+
+  if (operatingSystem.startsWith('Linux')) {
+    return 'Linux PC';
+  }
+
+  if (operatingSystem.startsWith('Android')) {
+    return 'Android Device';
+  }
+
+  if (operatingSystem.startsWith('iOS')) {
+    return isMobile ? 'iPhone or iPad' : 'iOS Device';
+  }
+
+  return 'This Device';
+};
+
+const getProcessor = (navigatorInfo: HardwareNavigator, architecture: string | undefined, bitness: string | undefined): string => {
+  const cpuCores = navigatorInfo.hardwareConcurrency
+    ? `${navigatorInfo.hardwareConcurrency} logical CPU cores`
+    : '';
+  const cpuArchitecture = architecture
+    ? `${architecture}${bitness ? ` ${bitness}-bit` : ''}`
+    : '';
+
+  return [cpuArchitecture, cpuCores].filter(Boolean).join(' | ') || unavailable;
+};
+
+const getMemory = (navigatorInfo: HardwareNavigator): string => {
+  if (!navigatorInfo.deviceMemory) {
+    return unavailable;
+  }
+
+  return `${navigatorInfo.deviceMemory} GB RAM (approx.)`;
+};
+
+const getGraphics = (): string => {
+  const canvas = document.createElement('canvas');
+  const gl =
+    canvas.getContext('webgl') ??
+    (canvas.getContext('experimental-webgl') as WebGLRenderingContext | null);
+
+  if (!gl) {
+    return unavailable;
+  }
+
+  const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+  const renderer = debugInfo
+    ? gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL)
+    : gl.getParameter(gl.RENDERER);
+
+  return typeof renderer === 'string' && renderer.trim() ? renderer.trim() : unavailable;
+};
+
+const getHardwareInfo = async (): Promise<HardwareInfo> => {
+  const navigatorInfo = window.navigator as HardwareNavigator;
+  const userAgent = navigatorInfo.userAgent;
+  const userAgentData = navigatorInfo.userAgentData;
+  let hints: UserAgentHighEntropyValues = {};
+
+  if (userAgentData?.getHighEntropyValues) {
+    try {
+      hints = await userAgentData.getHighEntropyValues([
+        'architecture',
+        'bitness',
+        'model',
+        'platform',
+        'platformVersion',
+        'fullVersionList',
+      ]);
+    } catch {
+      hints = {};
+    }
+  }
+
+  const operatingSystem = getOperatingSystem(
+    hints.platform ?? userAgentData?.platform ?? navigatorInfo.platform,
+    hints.platformVersion,
+    userAgent,
+  );
+  const processor = getProcessor(navigatorInfo, hints.architecture, hints.bitness);
+  const memory = getMemory(navigatorInfo);
+
+  return {
+    deviceName: getDeviceName(operatingSystem, hints.model, Boolean(userAgentData?.mobile)),
+    summary: [processor, memory].filter((value) => value !== unavailable).join(' | ') || 'Hardware access limited',
+    processor,
+    graphics: getGraphics(),
+    memory,
+    operatingSystem,
+    serialNumber: unavailable,
+  };
+};
 
 export const SettingsApp: React.FC = () => {
   const wallpaperId = useWindowStore((state) => state.wallpaperId);
@@ -15,6 +261,21 @@ export const SettingsApp: React.FC = () => {
   const setBrightness = useWindowStore((state) => state.setBrightness);
   const toggleWifi = useWindowStore((state) => state.toggleWifi);
   const toggleBluetooth = useWindowStore((state) => state.toggleBluetooth);
+  const [hardwareInfo, setHardwareInfo] = useState<HardwareInfo>(initialHardwareInfo);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    getHardwareInfo().then((info) => {
+      if (isMounted) {
+        setHardwareInfo(info);
+      }
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   return (
     <div className="flex h-full w-full bg-slate-50 dark:bg-zinc-950 text-slate-800 dark:text-zinc-200 select-none text-xs">
@@ -43,17 +304,19 @@ export const SettingsApp: React.FC = () => {
           </div>
 
           <div className="flex-1 flex flex-col text-center sm:text-left gap-1">
-            <h2 className="text-sm font-bold text-slate-900 dark:text-white">MacBook Pro 16"</h2>
-            <p className="text-[10px] text-slate-500 dark:text-zinc-400 font-medium">Apple M3 Ultra Chip | 64 GB RAM</p>
-            <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 mt-2 border-t border-slate-200 dark:border-zinc-800 pt-2 text-[10px] opacity-80">
+            <h2 className="text-sm font-bold text-slate-900 dark:text-white">{hardwareInfo.deviceName}</h2>
+            <p className="text-[10px] text-slate-500 dark:text-zinc-400 font-medium break-words">{hardwareInfo.summary}</p>
+            <div className="grid grid-cols-[7rem_minmax(0,1fr)] gap-x-4 gap-y-1.5 mt-2 border-t border-slate-200 dark:border-zinc-800 pt-2 text-[10px] opacity-80">
               <span className="font-semibold text-right sm:text-left">Processor:</span>
-              <span>Apple M3 Ultra (24-core CPU)</span>
+              <span className="min-w-0 break-words">{hardwareInfo.processor}</span>
               <span className="font-semibold text-right sm:text-left">Graphics:</span>
-              <span>76-core GPU, 16-core NE</span>
-              <span className="font-semibold text-right sm:text-left">macOS:</span>
-              <span>Sequoia v15.0.1</span>
+              <span className="min-w-0 break-words">{hardwareInfo.graphics}</span>
+              <span className="font-semibold text-right sm:text-left">Memory:</span>
+              <span className="min-w-0 break-words">{hardwareInfo.memory}</span>
+              <span className="font-semibold text-right sm:text-left">Operating System:</span>
+              <span className="min-w-0 break-words">{hardwareInfo.operatingSystem}</span>
               <span className="font-semibold text-right sm:text-left">Serial Number:</span>
-              <span className="font-mono">ANTIGRAVITY99</span>
+              <span className="min-w-0 break-words font-mono">{hardwareInfo.serialNumber}</span>
             </div>
           </div>
         </div>

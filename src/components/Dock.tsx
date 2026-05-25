@@ -79,12 +79,28 @@ const DOCK_ITEMS: DockItem[] = [
 export const Dock: React.FC = () => {
   const openWindow = useWindowStore((state) => state.openWindow);
   const focusWindow = useWindowStore((state) => state.focusWindow);
-  const openWindowSignature = useWindowStore((state) =>
-    DOCK_ITEMS.filter((item) => state.windows[item.id]?.isOpen).map((item) => item.id).join('|')
+  const windowIndicatorSignature = useWindowStore((state) =>
+    DOCK_ITEMS.map((item) => {
+      const win = state.windows[item.id];
+      if (!win?.isOpen) return '';
+
+      return `${item.id}:${win.isMinimized ? 'minimized' : 'open'}`;
+    })
+      .filter(Boolean)
+      .join('|')
   );
-  const openWindowIds = useMemo(
-    () => new Set(openWindowSignature.split('|').filter(Boolean)),
-    [openWindowSignature]
+  const windowIndicators = useMemo(
+    () =>
+      new Map(
+        windowIndicatorSignature
+          .split('|')
+          .filter(Boolean)
+          .map((entry) => {
+            const [appId, status] = entry.split(':');
+            return [appId, status];
+          })
+      ),
+    [windowIndicatorSignature]
   );
   const dockRef = useRef<HTMLDivElement>(null);
 
@@ -103,7 +119,8 @@ export const Dock: React.FC = () => {
       const center = rect.left + rect.width / 2;
       const distance = Math.abs(e.clientX - center);
       
-      const maxDistance = 180;
+      // Hover effect distance
+      const maxDistance = 60;
       let scale = 1;
       
       if (distance < maxDistance) {
@@ -137,7 +154,7 @@ export const Dock: React.FC = () => {
   };
 
   return (
-    <div className="fixed bottom-3 left-1/2 -translate-x-1/2 z-30 pointer-events-none select-none">
+    <div className="flex justify-center pb-3 pointer-events-none select-none">
       <div
         ref={dockRef}
         onMouseMove={handleMouseMove}
@@ -146,11 +163,14 @@ export const Dock: React.FC = () => {
         style={{ height: '70px' }}
       >
         {DOCK_ITEMS.map((item) => {
-          const isOpen = openWindowIds.has(item.id);
+          const windowIndicator = windowIndicators.get(item.id);
+          const isOpen = Boolean(windowIndicator);
+          const isMinimized = windowIndicator === 'minimized';
           
           return (
             <div
               key={item.id}
+              data-dock-app-id={item.id}
               onClick={() => handleIconClick(item.id)}
               className="dock-item-container flex flex-col items-center justify-end relative cursor-pointer pb-1 group"
               style={{ width: '48px', height: '100%' }}
@@ -169,9 +189,13 @@ export const Dock: React.FC = () => {
               </div>
 
               {/* Running App Indicator Dot */}
-              <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 flex items-center justify-center h-1.5 w-1.5">
+              <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 flex items-center justify-center h-1.5 w-3">
                 {isOpen && (
-                  <div className="w-1.5 h-1.5 rounded-full bg-white dark:bg-zinc-300 shadow-[0_0_4px_white]" />
+                  <div
+                    className={`h-1.5 rounded-full bg-white dark:bg-zinc-300 shadow-[0_0_4px_white] transition-all duration-200 ${
+                      isMinimized ? 'w-3' : 'w-1.5'
+                    }`}
+                  />
                 )}
               </div>
             </div>

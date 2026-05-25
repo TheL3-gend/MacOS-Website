@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useWindowStore } from '../store/useWindowStore';
-import { Apple, Wifi, Battery, Sliders } from 'lucide-react';
+import { Wifi, Battery, Sliders } from 'lucide-react';
 import { ControlCenter } from './ControlCenter';
 
 export const MenuBar: React.FC = () => {
@@ -65,7 +65,7 @@ export const MenuBar: React.FC = () => {
   return (
     <div
       ref={dropdownRef}
-      className="fixed top-0 left-0 right-0 h-7 text-white font-medium select-none z-30 flex items-center justify-between px-3 text-xs bg-black/10 dark:bg-black/25 backdrop-blur-md border-b border-white/10"
+      className="menu-bar-shell fixed top-0 left-0 right-0 h-7 text-white font-medium select-none z-30 flex items-center justify-between px-3 text-xs border-b border-white/10"
     >
       {/* Left Menu Items */}
       <div className="flex items-center gap-4 relative">
@@ -77,11 +77,16 @@ export const MenuBar: React.FC = () => {
               activeDropdown === 'apple' ? 'bg-white/10' : ''
             }`}
           >
-            <Apple className="w-3.5 h-3.5 fill-white text-white" />
+            <img
+              src="/leaf_logo_transparent.png"
+              alt=""
+              className="h-4 w-4 object-contain"
+              aria-hidden="true"
+            />
           </button>
 
           {activeDropdown === 'apple' && (
-            <div className="absolute top-8 left-0 w-52 py-1 bg-zinc-900/90 dark:bg-black/75 backdrop-blur-2xl border border-white/10 rounded-lg shadow-2xl text-white z-50 text-[13px] animate-in fade-in zoom-in-95 duration-100">
+            <div className="absolute top-8 left-0 w-52 py-1 bg-zinc-900/90 dark:bg-black/75 backdrop-blur-2xl border border-white/10 rounded-lg shadow-2xl text-white z-50 text-[13px] animate-dropdown-in">
               <button
                 onClick={() => {
                   openWindow('settings');
