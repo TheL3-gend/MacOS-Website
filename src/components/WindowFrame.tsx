@@ -14,7 +14,6 @@ type ResizeDirection = 'r' | 'b' | 'br';
 const DEFAULT_POSITION = { x: 100, y: 100 };
 const DEFAULT_SIZE = { width: 800, height: 600 };
 const MENU_BAR_HEIGHT = 28;
-const DOCK_RESERVED_HEIGHT = 100;
 const MIN_WINDOW_WIDTH = 380;
 const MIN_WINDOW_HEIGHT = 280;
 const FULLSCREEN_ANIMATION_DURATION = 0.58;
@@ -25,7 +24,7 @@ const getDesktopBounds = () => ({
   minX: 0,
   minY: MENU_BAR_HEIGHT,
   maxX: window.innerWidth,
-  maxY: Math.max(MENU_BAR_HEIGHT + MIN_WINDOW_HEIGHT, window.innerHeight - DOCK_RESERVED_HEIGHT),
+  maxY: Math.max(MENU_BAR_HEIGHT + MIN_WINDOW_HEIGHT, window.innerHeight),
 });
 
 const getFullscreenFrame = () => ({

@@ -157,3 +157,45 @@ test('desktop keeps overlapping-window behavior', async ({ browser }) => {
 
   await context.close();
 });
+
+test('desktop windows can move behind the dock layer', async ({ browser }) => {
+  const context = await browser.newContext({
+    viewport: { width: 1440, height: 900 },
+  });
+  const page = await context.newPage();
+
+  await page.goto(appUrl);
+  await unlock(page);
+
+  const finderWindow = page.locator('[data-app-window-id="finder"]');
+  const titleBar = finderWindow.locator('.window-titlebar');
+  const dockItem = page.locator('[data-dock-app-id="finder"]');
+
+  const titleBox = await titleBar.boundingBox();
+  expect(titleBox).not.toBeNull();
+
+  const dragX = titleBox!.x + titleBox!.width / 2;
+  const dragY = titleBox!.y + titleBox!.height / 2;
+  await page.mouse.move(dragX, dragY);
+  await page.mouse.down();
+  await page.mouse.move(dragX, 880, { steps: 12 });
+  await page.mouse.up();
+
+  const windowBox = await finderWindow.boundingBox();
+  const dockBox = await dockItem.boundingBox();
+  expect(windowBox).not.toBeNull();
+  expect(dockBox).not.toBeNull();
+  expect(windowBox!.y + windowBox!.height).toBeGreaterThan(dockBox!.y + 20);
+
+  const dockOwnsItsLayer = await page.evaluate(() => {
+    const dockItem = document.querySelector<HTMLElement>('[data-dock-app-id="finder"]');
+    const rect = dockItem?.getBoundingClientRect();
+    if (!rect) return false;
+
+    const hit = document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2);
+    return Boolean(hit?.closest('[data-dock-app-id]'));
+  });
+  expect(dockOwnsItsLayer).toBe(true);
+
+  await context.close();
+});
