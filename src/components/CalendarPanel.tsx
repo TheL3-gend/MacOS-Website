@@ -7,11 +7,14 @@ interface CalendarPanelProps {
 }
 
 const getMonthStart = (date: Date) => new Date(date.getFullYear(), date.getMonth(), 1);
+const YEARS_PER_PAGE = 12;
 
 const isSameDay = (firstDate: Date, secondDate: Date) =>
   firstDate.getFullYear() === secondDate.getFullYear() &&
   firstDate.getMonth() === secondDate.getMonth() &&
   firstDate.getDate() === secondDate.getDate();
+
+const getYearPageStart = (year: number) => year - (year % YEARS_PER_PAGE);
 
 const getLocaleWeekStart = () => {
   if (typeof navigator === 'undefined' || typeof Intl.Locale === 'undefined') {
@@ -33,8 +36,16 @@ export const CalendarPanel: React.FC<CalendarPanelProps> = ({
   isPhoneLandscape = false,
 }) => {
   const [visibleMonth, setVisibleMonth] = React.useState(() => getMonthStart(currentDate));
+  const [isYearPickerOpen, setIsYearPickerOpen] = React.useState(false);
+  const [yearPageStart, setYearPageStart] = React.useState(() => (
+    getYearPageStart(currentDate.getFullYear())
+  ));
   const weekStart = React.useMemo(() => getLocaleWeekStart(), []);
+  const visibleYear = visibleMonth.getFullYear();
 
+  const monthLabel = visibleMonth.toLocaleDateString([], {
+    month: 'long',
+  });
   const monthTitle = visibleMonth.toLocaleDateString([], {
     month: 'long',
     year: 'numeric',
@@ -56,27 +67,62 @@ export const CalendarPanel: React.FC<CalendarPanelProps> = ({
   );
 
   const calendarDays = React.useMemo(() => {
-    const year = visibleMonth.getFullYear();
     const month = visibleMonth.getMonth();
-    const firstOfMonth = new Date(year, month, 1);
+    const firstOfMonth = new Date(visibleYear, month, 1);
     const leadingDays = (firstOfMonth.getDay() - weekStart + 7) % 7;
-    const gridStart = new Date(year, month, 1 - leadingDays);
+    const gridStart = new Date(visibleYear, month, 1 - leadingDays);
 
     return Array.from({ length: 42 }, (_, index) => (
       new Date(gridStart.getFullYear(), gridStart.getMonth(), gridStart.getDate() + index)
     ));
-  }, [visibleMonth, weekStart]);
+  }, [visibleMonth, visibleYear, weekStart]);
+
+  const yearOptions = React.useMemo(
+    () => Array.from({ length: YEARS_PER_PAGE }, (_, index) => yearPageStart + index),
+    [yearPageStart],
+  );
 
   const goToPreviousMonth = () => {
-    setVisibleMonth((month) => new Date(month.getFullYear(), month.getMonth() - 1, 1));
+    setIsYearPickerOpen(false);
+    setVisibleMonth((month) => {
+      const nextMonth = new Date(month.getFullYear(), month.getMonth() - 1, 1);
+      setYearPageStart(getYearPageStart(nextMonth.getFullYear()));
+      return nextMonth;
+    });
   };
 
   const goToNextMonth = () => {
-    setVisibleMonth((month) => new Date(month.getFullYear(), month.getMonth() + 1, 1));
+    setIsYearPickerOpen(false);
+    setVisibleMonth((month) => {
+      const nextMonth = new Date(month.getFullYear(), month.getMonth() + 1, 1);
+      setYearPageStart(getYearPageStart(nextMonth.getFullYear()));
+      return nextMonth;
+    });
   };
 
   const goToToday = () => {
     setVisibleMonth(getMonthStart(currentDate));
+    setYearPageStart(getYearPageStart(currentDate.getFullYear()));
+    setIsYearPickerOpen(false);
+  };
+
+  const toggleYearPicker = () => {
+    setYearPageStart(getYearPageStart(visibleYear));
+    setIsYearPickerOpen((isOpen) => !isOpen);
+  };
+
+  const goToPreviousYearPage = () => {
+    setYearPageStart((startYear) => startYear - YEARS_PER_PAGE);
+  };
+
+  const goToNextYearPage = () => {
+    setYearPageStart((startYear) => startYear + YEARS_PER_PAGE);
+  };
+
+  const chooseYear = (year: number) => {
+    setVisibleMonth((month) => new Date(year, month.getMonth(), 1));
+    setYearPageStart(getYearPageStart(year));
+    setIsYearPickerOpen(false);
   };
 
   return (
@@ -102,10 +148,21 @@ export const CalendarPanel: React.FC<CalendarPanelProps> = ({
       <div className="rounded-2xl bg-white/[0.16] dark:bg-black/35 border border-white/10 p-3">
         <div className="flex items-center justify-between gap-2">
           <h2
+            key={monthTitle}
             data-testid="calendar-month-title"
-            className="text-[14px] font-bold leading-none"
+            className="calendar-title-in flex items-center gap-1 text-[14px] font-bold leading-none"
           >
-            {monthTitle}
+            <span>{monthLabel} </span>
+            <button
+              type="button"
+              data-testid="calendar-year-button"
+              aria-expanded={isYearPickerOpen}
+              aria-label={`Choose year ${visibleYear}`}
+              onClick={toggleYearPicker}
+              className="rounded-md px-1.5 py-1 -my-1 text-white/90 hover:bg-white/15 hover:text-white transition-all"
+            >
+              {visibleYear}
+            </button>
           </h2>
           <div className="flex items-center gap-1">
             <button
@@ -127,6 +184,59 @@ export const CalendarPanel: React.FC<CalendarPanelProps> = ({
           </div>
         </div>
 
+        {isYearPickerOpen && (
+          <div
+            data-testid="calendar-year-picker"
+            className="calendar-year-picker-in mt-3 rounded-xl bg-black/25 border border-white/10 p-2"
+          >
+            <div className="flex items-center justify-between gap-2 px-1 pb-2">
+              <button
+                type="button"
+                aria-label="Previous year range"
+                onClick={goToPreviousYearPage}
+                className="w-7 h-7 rounded-full flex items-center justify-center text-white/80 hover:bg-white/15 hover:text-white transition-all"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <span className="text-[11px] font-bold text-white/70">
+                {yearPageStart} - {yearPageStart + YEARS_PER_PAGE - 1}
+              </span>
+              <button
+                type="button"
+                aria-label="Next year range"
+                onClick={goToNextYearPage}
+                className="w-7 h-7 rounded-full flex items-center justify-center text-white/80 hover:bg-white/15 hover:text-white transition-all"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+            <div key={yearPageStart} className="calendar-year-grid-in grid grid-cols-4 gap-1">
+              {yearOptions.map((year) => {
+                const isVisibleYear = year === visibleYear;
+                const isCurrentYear = year === currentDate.getFullYear();
+
+                return (
+                  <button
+                    key={year}
+                    type="button"
+                    aria-label={`Show ${year}`}
+                    onClick={() => chooseYear(year)}
+                    className={`h-8 rounded-lg text-[12px] font-semibold transition-all ${
+                      isVisibleYear
+                        ? 'bg-indigo-600 text-white shadow-md shadow-indigo-950/30'
+                        : isCurrentYear
+                          ? 'bg-white/15 text-white'
+                          : 'text-white/75 hover:bg-white/10 hover:text-white'
+                    }`}
+                  >
+                    {year}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         <div className="grid grid-cols-7 gap-1 mt-3 text-center">
           {weekdayLabels.map((label) => (
             <div
@@ -138,7 +248,12 @@ export const CalendarPanel: React.FC<CalendarPanelProps> = ({
           ))}
         </div>
 
-        <div role="grid" aria-label={monthTitle} className="grid grid-cols-7 gap-1">
+        <div
+          key={monthTitle}
+          role="grid"
+          aria-label={monthTitle}
+          className="calendar-grid-in grid grid-cols-7 gap-1"
+        >
           {calendarDays.map((day) => {
             const isCurrentMonth = day.getMonth() === visibleMonth.getMonth();
             const isToday = isSameDay(day, currentDate);

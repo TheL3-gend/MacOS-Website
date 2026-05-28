@@ -568,10 +568,18 @@ const migrateWorkspaceFolder = (folder: WorkspaceFolder): WorkspaceFolder => ({
       return migrateWorkspaceFolder(node);
     }
 
+    const storedFile = node as WorkspaceFile & {
+      savedContent?: string;
+      gitContent?: string | null;
+    };
+    const savedContent = storedFile.savedContent ?? storedFile.content;
+
     return {
-      ...node,
-      savedContent: node.savedContent ?? node.content,
-      gitContent: 'gitContent' in node ? node.gitContent : (node.savedContent ?? node.content),
+      ...storedFile,
+      savedContent,
+      gitContent: Object.prototype.hasOwnProperty.call(storedFile, 'gitContent')
+        ? storedFile.gitContent ?? null
+        : savedContent,
     };
   }),
 });

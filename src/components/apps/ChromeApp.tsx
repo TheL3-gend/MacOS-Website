@@ -313,6 +313,29 @@ export const ChromeApp: React.FC = () => {
     navigateTab(activeTab.id, rawAddress);
   };
 
+  const navigateActiveTabToInternalUrl = (nextUrl: string) => {
+    if (!activeTab) return;
+
+    setTabs((currentTabs) =>
+      currentTabs.map((tab) => {
+        if (tab.id !== activeTab.id) return tab;
+
+        const currentUrl = getTabUrl(tab);
+        const nextHistory = currentUrl === nextUrl
+          ? tab.history
+          : [...tab.history.slice(0, tab.historyIndex + 1), nextUrl];
+
+        return {
+          ...tab,
+          history: nextHistory,
+          historyIndex: nextHistory.length - 1,
+          loadStatus: 'idle',
+        };
+      })
+    );
+    setAddressDraft(formatAddressValue(nextUrl));
+  };
+
   const goToHistoryEntry = (direction: -1 | 1) => {
     if (!activeTab) return;
 
@@ -506,7 +529,7 @@ export const ChromeApp: React.FC = () => {
             key={project.id}
             type="button"
             data-testid={`chrome-start-bookmark-${project.id}`}
-            onClick={() => navigateActiveTab(project.url)}
+            onClick={() => navigateActiveTabToInternalUrl(project.url)}
             className="rounded-lg border border-zinc-200 bg-zinc-50 p-4 text-left shadow-sm transition hover:border-blue-300 hover:bg-white dark:border-zinc-800 dark:bg-zinc-950/70 dark:hover:border-blue-700 dark:hover:bg-zinc-950"
           >
             <div className="flex items-center gap-2">
@@ -575,7 +598,7 @@ export const ChromeApp: React.FC = () => {
                 <button
                   key={project.id}
                   type="button"
-                  onClick={() => navigateActiveTab(project.url)}
+                  onClick={() => navigateActiveTabToInternalUrl(project.url)}
                   className="rounded-lg border border-zinc-200 bg-zinc-50 p-4 text-left shadow-sm transition hover:border-blue-300 hover:bg-white dark:border-zinc-800 dark:bg-zinc-950/70 dark:hover:border-blue-700 dark:hover:bg-zinc-950"
                 >
                   <div className="flex items-center gap-2">
@@ -953,7 +976,7 @@ export const ChromeApp: React.FC = () => {
             key={project.id}
             type="button"
             data-testid={`chrome-bookmark-${project.id}`}
-            onClick={() => navigateActiveTab(project.url)}
+            onClick={() => navigateActiveTabToInternalUrl(project.url)}
             className="flex h-6 shrink-0 items-center gap-1.5 rounded-md px-2 text-slate-600 hover:bg-slate-100 hover:text-zinc-950 dark:text-zinc-300 dark:hover:bg-zinc-800 dark:hover:text-white"
           >
             <Globe className="h-3 w-3 text-blue-500" />

@@ -22,6 +22,17 @@ async function getMonthTitle(page: Page, monthOffset: number) {
   }, monthOffset);
 }
 
+async function getMonthTitleForYear(page: Page, year: number) {
+  return page.evaluate((targetYear) => {
+    const now = new Date();
+    const month = new Date(targetYear, now.getMonth(), 1);
+    return month.toLocaleDateString([], {
+      month: 'long',
+      year: 'numeric',
+    });
+  }, year);
+}
+
 test('menu bar date opens a navigable calendar popover', async ({ page }) => {
   await page.goto(appUrl);
   await unlock(page);
@@ -53,6 +64,30 @@ test('menu bar date opens a navigable calendar popover', async ({ page }) => {
 
   await page.mouse.click(20, 80);
   await expect(calendarPanel).toHaveCount(0);
+});
+
+test('calendar year can be changed from the clickable year picker', async ({ page }) => {
+  await page.goto(appUrl);
+  await unlock(page);
+
+  const currentYear = await page.evaluate(() => new Date().getFullYear());
+  const targetYear = currentYear + 12;
+  const targetMonthTitle = await getMonthTitleForYear(page, targetYear);
+
+  await page.getByTestId('menu-bar-date-time').click();
+
+  const yearButton = page.getByTestId('calendar-year-button');
+  await expect(yearButton).toBeVisible();
+  await yearButton.click();
+
+  const yearPicker = page.getByTestId('calendar-year-picker');
+  await expect(yearPicker).toBeVisible();
+
+  await page.getByRole('button', { name: 'Next year range' }).click();
+  await page.getByRole('button', { name: `Show ${targetYear}` }).click();
+
+  await expect(yearPicker).toHaveCount(0);
+  await expect(page.getByTestId('calendar-month-title')).toHaveText(targetMonthTitle);
 });
 
 test('calendar shares menu-bar dropdown state with control centre', async ({ page }) => {

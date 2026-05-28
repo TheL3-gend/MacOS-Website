@@ -243,6 +243,23 @@ body.desktop-icon-is-dragging * {
   animation: spin 8s linear infinite;
 }
 
+.calendar-title-in {
+  animation: calendar-title-in 180ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.calendar-grid-in {
+  animation: calendar-grid-in 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.calendar-year-picker-in {
+  animation: calendar-year-picker-in 180ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  transform-origin: top center;
+}
+
+.calendar-year-grid-in {
+  animation: calendar-year-grid-in 160ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
 .theme-switch-wash-light {
   background:
     radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0) 58%),
@@ -315,9 +332,66 @@ body.desktop-icon-is-dragging * {
   }
 }
 
+@keyframes calendar-title-in {
+  from {
+    opacity: 0;
+    transform: translateY(-3px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes calendar-grid-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes calendar-year-picker-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scaleY(0.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scaleY(1);
+  }
+}
+
+@keyframes calendar-year-grid-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @keyframes spin {
   to {
     transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .calendar-title-in,
+  .calendar-grid-in,
+  .calendar-year-picker-in,
+  .calendar-year-grid-in {
+    animation: none;
   }
 }
 
