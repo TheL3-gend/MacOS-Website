@@ -7,8 +7,14 @@ import { ChromeApp } from './apps/ChromeApp';
 import { VSCodeApp } from './apps/VSCodeApp';
 import { NotesApp } from './apps/NotesApp';
 import { SettingsApp } from './apps/SettingsApp';
-import { Terminal, Settings, FileText, Code2, FolderOpen } from 'lucide-react';
+import { Terminal, Settings, FileText, Code2, FolderOpen, FileCode2 } from 'lucide-react';
 import { ChromeIcon } from './icons/ChromeIcon';
+import {
+  loadVirtualDesktopFiles,
+  requestOpenDesktopFile,
+  VIRTUAL_DESKTOP_FILES_EVENT,
+  type VirtualDesktopFile,
+} from '../lib/virtualDesktopFiles';
 
 interface DesktopIcon {
   id: string;
@@ -56,11 +62,21 @@ export const Desktop: React.FC<DesktopProps> = ({ isPhoneLandscape = false }) =>
   const draggedIconRef = React.useRef<string | null>(null);
   const [draggingIconId, setDraggingIconId] = React.useState<string | null>(null);
   const [iconPositions, setIconPositions] = React.useState<Record<string, DesktopIconPosition>>({});
+  const [desktopBounds, setDesktopBounds] = React.useState({ width: 0, height: 0 });
+  const [desktopFiles, setDesktopFiles] = React.useState<VirtualDesktopFile[]>(() =>
+    loadVirtualDesktopFiles()
+  );
 
   const handleIconDoubleClick = (id: string) => {
     if (draggedIconRef.current === id) return;
     openWindow(id);
     focusWindow(id);
+  };
+
+  const handleDesktopFileDoubleClick = (file: VirtualDesktopFile) => {
+    requestOpenDesktopFile(file.id);
+    openWindow('vscode');
+    focusWindow('vscode');
   };
 
   const icons = React.useMemo<DesktopIcon[]>(
@@ -115,6 +131,7 @@ export const Desktop: React.FC<DesktopProps> = ({ isPhoneLandscape = false }) =>
         height: desktop.clientHeight,
       };
 
+      setDesktopBounds(bounds);
       setIconPositions((current) => {
         let changed = false;
         const next: Record<string, DesktopIconPosition> = { ...current };
@@ -159,6 +176,18 @@ export const Desktop: React.FC<DesktopProps> = ({ isPhoneLandscape = false }) =>
       resizeObserver.disconnect();
     };
   }, [icons]);
+
+  React.useEffect(() => {
+    const refreshDesktopFiles = () => setDesktopFiles(loadVirtualDesktopFiles());
+
+    window.addEventListener(VIRTUAL_DESKTOP_FILES_EVENT, refreshDesktopFiles);
+    window.addEventListener('storage', refreshDesktopFiles);
+
+    return () => {
+      window.removeEventListener(VIRTUAL_DESKTOP_FILES_EVENT, refreshDesktopFiles);
+      window.removeEventListener('storage', refreshDesktopFiles);
+    };
+  }, []);
 
   const handleIconPointerDown = (e: React.PointerEvent<HTMLButtonElement>, id: string) => {
     if (isPhoneLandscape) return;
@@ -313,6 +342,40 @@ export const Desktop: React.FC<DesktopProps> = ({ isPhoneLandscape = false }) =>
               {ico.name}
             </span>
           </button>
+          );
+        })}
+
+        {desktopFiles.map((file, index) => {
+          const position = getDefaultIconPosition(icons.length + index, desktopBounds);
+
+          return (
+            <button
+              key={file.id}
+              type="button"
+              data-testid="virtual-desktop-file"
+              aria-label={`Open ${file.name}`}
+              onClick={isPhoneLandscape ? () => handleDesktopFileDoubleClick(file) : undefined}
+              onDoubleClick={isPhoneLandscape ? undefined : () => handleDesktopFileDoubleClick(file)}
+              className={`desktop-icon flex flex-col items-center gap-1 text-center group ${
+                isPhoneLandscape ? 'relative cursor-pointer' : 'absolute cursor-pointer'
+              }`}
+              style={{
+                left: !isPhoneLandscape ? `${position.x}px` : undefined,
+                top: !isPhoneLandscape ? `${position.y}px` : undefined,
+                width: isPhoneLandscape ? '62px' : `${ICON_WIDTH}px`,
+                zIndex: 1,
+                opacity: desktopBounds.width || isPhoneLandscape ? 1 : 0,
+              }}
+            >
+              <div
+                className={`${isPhoneLandscape ? 'w-10 h-10 rounded-xl' : 'w-12 h-12 rounded-[13px]'} flex items-center justify-center shadow-lg group-hover:brightness-105 group-active:scale-95 transition-all bg-gradient-to-b from-slate-50 to-slate-200 border border-slate-200`}
+              >
+                <FileCode2 className="w-6 h-6 text-sky-600" />
+              </div>
+              <span className={`${isPhoneLandscape ? 'text-[9px]' : 'text-[10px]'} max-w-[68px] truncate text-white font-semibold tracking-wide drop-shadow-md bg-black/15 group-hover:bg-black/30 px-1.5 py-0.5 rounded-md transition-all select-none`}>
+                {file.name}
+              </span>
+            </button>
           );
         })}
       </div>

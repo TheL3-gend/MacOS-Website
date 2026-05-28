@@ -39,7 +39,7 @@ interface BrowserTab {
 }
 
 const START_URL = 'chrome://start';
-const GOOGLE_SEARCH_URL = 'https://www.google.com/search?igu=1&q=';
+const SEARCH_URL_PREFIX = 'chrome://search?q=';
 const FRAME_BLOCKED_HOSTS = new Set([
   'accounts.google.com',
   'facebook.com',
@@ -87,6 +87,20 @@ const normalizeComparableUrl = (url: string) => url.replace(/\/+$/, '');
 const getProjectByUrl = (url: string) =>
   PROJECTS.find((project) => normalizeComparableUrl(project.url) === normalizeComparableUrl(url));
 
+const createSearchUrl = (query: string) => `${SEARCH_URL_PREFIX}${encodeURIComponent(query)}`;
+
+const isSearchUrl = (url: string) => url.startsWith(SEARCH_URL_PREFIX);
+
+const getSearchQuery = (url: string) => {
+  if (!isSearchUrl(url)) return '';
+
+  try {
+    return decodeURIComponent(url.slice(SEARCH_URL_PREFIX.length));
+  } catch {
+    return url.slice(SEARCH_URL_PREFIX.length);
+  }
+};
+
 const isGoogleSearchUrl = (url: URL) =>
   url.hostname === 'www.google.com' && url.pathname === '/search';
 
@@ -120,7 +134,7 @@ const normalizeNavigationInput = (value: string) => {
         return normalizeParsedUrl(parsedUrl);
       }
     } catch {
-      return `${GOOGLE_SEARCH_URL}${encodeURIComponent(trimmed)}`;
+      return createSearchUrl(trimmed);
     }
   }
 
@@ -129,16 +143,16 @@ const normalizeNavigationInput = (value: string) => {
     try {
       return normalizeParsedUrl(new URL(`${protocol}${trimmed}`));
     } catch {
-      return `${GOOGLE_SEARCH_URL}${encodeURIComponent(trimmed)}`;
+      return createSearchUrl(trimmed);
     }
   }
 
-  return `${GOOGLE_SEARCH_URL}${encodeURIComponent(trimmed)}`;
+  return createSearchUrl(trimmed);
 };
 
 const getTabUrl = (tab: BrowserTab) => tab.history[tab.historyIndex] ?? START_URL;
 
-const isExternalUrl = (url: string) => url !== START_URL && !getProjectByUrl(url);
+const isExternalUrl = (url: string) => url !== START_URL && !isSearchUrl(url) && !getProjectByUrl(url);
 
 const isKnownFrameBlockedUrl = (url: string) => {
   try {
@@ -156,6 +170,7 @@ const isKnownFrameBlockedUrl = (url: string) => {
 const getPageTitle = (url: string) => {
   const project = getProjectByUrl(url);
   if (url === START_URL) return 'New Tab';
+  if (isSearchUrl(url)) return `Search: ${getSearchQuery(url)}`;
   if (project) return project.name;
 
   try {
@@ -170,7 +185,11 @@ const getPageTitle = (url: string) => {
   }
 };
 
-const formatAddressValue = (url: string) => (url === START_URL ? '' : url);
+const formatAddressValue = (url: string) => {
+  if (url === START_URL) return '';
+  if (isSearchUrl(url)) return getSearchQuery(url);
+  return url;
+};
 
 const getLoadStatusForUrl = (url: string): FrameLoadStatus => {
   if (!isExternalUrl(url)) return 'idle';
@@ -214,6 +233,7 @@ export const ChromeApp: React.FC = () => {
   );
   const activeUrl = activeTab ? getTabUrl(activeTab) : START_URL;
   const activeProject = getProjectByUrl(activeUrl);
+  const activeSearchQuery = isSearchUrl(activeUrl) ? getSearchQuery(activeUrl) : '';
   const canGoBack = Boolean(activeTab && activeTab.historyIndex > 0);
   const canGoForward = Boolean(activeTab && activeTab.historyIndex < activeTab.history.length - 1);
 
@@ -502,18 +522,96 @@ export const ChromeApp: React.FC = () => {
     </div>
   );
 
+  const renderSearchPage = (query: string) => {
+    const normalizedQuery = query.trim().toLowerCase();
+    const projectMatches = PROJECTS.filter((project) =>
+      [
+        project.name,
+        project.desc,
+        ...project.tags,
+      ].some((value) => value.toLowerCase().includes(normalizedQuery))
+    );
+    const encodedQuery = encodeURIComponent(query);
+    const searchLinks = [
+      { name: 'Google', url: `https://www.google.com/search?q=${encodedQuery}` },
+      { name: 'DuckDuckGo', url: `https://duckduckgo.com/?q=${encodedQuery}` },
+      { name: 'Bing', url: `https://www.bing.com/search?q=${encodedQuery}` },
+    ];
+
+    return (
+      <div
+        data-testid="chrome-search-page"
+        className="chrome-search-page min-h-full bg-white px-5 py-7 dark:bg-zinc-900"
+      >
+        <div className="mx-auto flex max-w-3xl flex-col gap-5">
+          <div>
+            <div className="flex items-center gap-2 text-xs font-semibold text-blue-600 dark:text-blue-400">
+              <Search className="h-4 w-4" />
+              <span>Search results</span>
+            </div>
+            <h2 className="mt-2 text-xl font-semibold text-zinc-950 dark:text-white">
+              {query}
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+            {searchLinks.map((link) => (
+              <a
+                key={link.name}
+                href={link.url}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center justify-between rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm font-bold text-zinc-900 hover:border-blue-300 hover:bg-white dark:border-zinc-800 dark:bg-zinc-950/70 dark:text-white dark:hover:border-blue-700"
+              >
+                <span>{link.name}</span>
+                <ExternalLink className="h-4 w-4 text-zinc-400" />
+              </a>
+            ))}
+          </div>
+
+          <div className="flex flex-col gap-3">
+            {projectMatches.length > 0 ? (
+              projectMatches.map((project) => (
+                <button
+                  key={project.id}
+                  type="button"
+                  onClick={() => navigateActiveTab(project.url)}
+                  className="rounded-lg border border-zinc-200 bg-zinc-50 p-4 text-left shadow-sm transition hover:border-blue-300 hover:bg-white dark:border-zinc-800 dark:bg-zinc-950/70 dark:hover:border-blue-700 dark:hover:bg-zinc-950"
+                >
+                  <div className="flex items-center gap-2">
+                    <Globe className="h-4 w-4 shrink-0 text-blue-500" />
+                    <span className="truncate text-sm font-bold text-zinc-950 dark:text-white">{project.name}</span>
+                  </div>
+                  <p className="mt-2 text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">
+                    {project.desc}
+                  </p>
+                </button>
+              ))
+            ) : (
+              <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-5 text-sm text-zinc-600 dark:border-zinc-800 dark:bg-zinc-950/70 dark:text-zinc-400">
+                No local portfolio matches. Use one of the web search links above, or enter a full website address.
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   const renderExternalPage = (tab: BrowserTab, url: string) => (
     <div className="chrome-external-page relative h-full w-full bg-white dark:bg-zinc-950">
-      <iframe
-        key={`${tab.id}-${tab.iframeKey}-${url}`}
-        data-testid="chrome-external-frame"
-        title="Chrome page"
-        src={url}
-        sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts"
-        referrerPolicy="no-referrer"
-        onLoad={() => handleFrameLoad(tab.id, url)}
-        className="h-full w-full border-0 bg-white"
-      />
+      {!isKnownFrameBlockedUrl(url) && (
+        <iframe
+          key={`${tab.id}-${tab.iframeKey}-${url}`}
+          data-testid="chrome-external-frame"
+          title="Chrome page"
+          src={url}
+          sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts"
+          referrerPolicy="no-referrer"
+          onLoad={() => handleFrameLoad(tab.id, url)}
+          className="h-full w-full border-0 bg-white"
+        />
+      )}
 
       {tab.loadStatus === 'loading' && (
         <div
@@ -533,7 +631,7 @@ export const ChromeApp: React.FC = () => {
             <AlertTriangle className="mx-auto h-8 w-8 text-amber-500" />
             <h3 className="mt-3 text-sm font-bold text-zinc-950 dark:text-white">This page may block embedded browsing</h3>
             <p className="mt-2 text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">
-              Chrome kept the address loaded, but some websites only allow viewing in a full browser tab.
+              Chrome kept the address loaded, but this website only allows viewing in a full browser tab.
             </p>
             <a
               href={url}
@@ -866,6 +964,7 @@ export const ChromeApp: React.FC = () => {
 
       <div className="chrome-content flex-1 overflow-y-auto bg-white dark:bg-zinc-900">
         {activeUrl === START_URL && renderStartPage()}
+        {activeSearchQuery && renderSearchPage(activeSearchQuery)}
         {activeProject && (
           <div className="p-5">
             {renderProjectPage(activeProject)}

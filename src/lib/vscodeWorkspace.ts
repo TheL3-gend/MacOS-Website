@@ -17,6 +17,14 @@ export interface WorkspaceFile {
   language: WorkspaceLanguage;
   content: string;
   savedContent: string;
+  gitContent: string | null;
+}
+
+export interface WorkspaceCommit {
+  id: string;
+  message: string;
+  changedPaths: string[];
+  createdAt: number;
 }
 
 export interface WorkspaceFolder {
@@ -34,16 +42,21 @@ export interface WorkspaceState {
   root: WorkspaceFolder;
   activeFilePath: string;
   lastSavedAt: number;
+  gitBranch: string;
+  commits: WorkspaceCommit[];
 }
 
 type StoredWorkspaceState = Omit<WorkspaceState, 'lastSavedAt'> & {
   lastSavedAt?: number;
+  gitBranch?: string;
+  commits?: WorkspaceCommit[];
 };
 
 const createFile = (
   path: string,
   language: WorkspaceLanguage,
-  content: string
+  content: string,
+  gitContent: string | null = content
 ): WorkspaceFile => ({
   id: `file:${path}`,
   type: 'file',
@@ -52,6 +65,7 @@ const createFile = (
   language,
   content,
   savedContent: content,
+  gitContent,
 });
 
 const createFolder = (
@@ -71,6 +85,15 @@ const createFolder = (
 export const DEFAULT_WORKSPACE_STATE: WorkspaceState = {
   activeFilePath: 'src/App.tsx',
   lastSavedAt: Date.now(),
+  gitBranch: 'main',
+  commits: [
+    {
+      id: 'c0ffee1',
+      message: 'Initial virtual workspace',
+      changedPaths: ['src/App.tsx', 'src/components/Dock.tsx', 'src/store/useWindowStore.ts'],
+      createdAt: Date.now(),
+    },
+  ],
   root: createFolder('', 'sharp-bose', [
     createFolder('src', 'src', [
       createFile(
@@ -181,6 +204,49 @@ export const useWindowStore = create<SystemState>((set) => ({
 `
         ),
       ]),
+      createFile(
+        'src/run-demo.js',
+        'javascript',
+        `const todos = ['commit changes', 'install extensions', 'ship preview'];
+
+console.log('Running virtual VS Code workspace');
+console.log('Todo count:', todos.length);
+console.table(todos.map((task, index) => ({ index: index + 1, task })));
+`
+      ),
+      createFile(
+        'src/preview.html',
+        'html',
+        `<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Live Preview</title>
+    <style>
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        font-family: system-ui, sans-serif;
+        color: white;
+        background: linear-gradient(135deg, #0f766e, #2563eb);
+      }
+      main {
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Hello from the VS Code fork</h1>
+      <p>This file runs in the built-in browser preview.</p>
+      <button onclick="document.body.style.background = '#18181b'">Switch theme</button>
+    </main>
+  </body>
+</html>
+`
+      ),
       createFile(
         'src/index.css',
         'css',
@@ -328,6 +394,30 @@ export const markWorkspaceSaved = (nodes: WorkspaceNode[]): WorkspaceNode[] =>
     return { ...node, children: markWorkspaceSaved(node.children) };
   });
 
+export const markWorkspaceCommitted = (nodes: WorkspaceNode[]): WorkspaceNode[] =>
+  nodes.map((node) => {
+    if (node.type === 'file') {
+      return { ...node, savedContent: node.content, gitContent: node.content };
+    }
+
+    return { ...node, children: markWorkspaceCommitted(node.children) };
+  });
+
+export const resetWorkspaceToGit = (nodes: WorkspaceNode[]): WorkspaceNode[] =>
+  nodes
+    .filter((node) => node.type === 'folder' || node.gitContent !== null)
+    .map((node) => {
+      if (node.type === 'file') {
+        return {
+          ...node,
+          content: node.gitContent ?? node.content,
+          savedContent: node.gitContent ?? node.content,
+        };
+      }
+
+      return { ...node, children: resetWorkspaceToGit(node.children) };
+    });
+
 export const setWorkspaceFolderExpanded = (
   nodes: WorkspaceNode[],
   folderPath: string,
@@ -355,7 +445,7 @@ export const addWorkspaceFile = (nodes: WorkspaceNode[], filePath: string): Work
   if (!parentPath) {
     return [
       ...nodes,
-      createFile(normalizedPath, getLanguageFromPath(normalizedPath), ''),
+      createFile(normalizedPath, getLanguageFromPath(normalizedPath), '', null),
     ].sort(sortWorkspaceNodes);
   }
 
@@ -368,7 +458,7 @@ export const addWorkspaceFile = (nodes: WorkspaceNode[], filePath: string): Work
         expanded: true,
         children: [
           ...node.children,
-          createFile(normalizedPath, getLanguageFromPath(normalizedPath), ''),
+          createFile(normalizedPath, getLanguageFromPath(normalizedPath), '', null),
         ].sort(sortWorkspaceNodes),
       };
     }
@@ -435,10 +525,14 @@ export const loadWorkspaceState = (): WorkspaceState => {
       return cloneWorkspaceState();
     }
 
+    const migratedRoot = migrateWorkspaceFolder(parsed.root);
+
     return {
-      root: parsed.root,
+      root: migratedRoot,
       activeFilePath: parsed.activeFilePath,
       lastSavedAt: parsed.lastSavedAt ?? Date.now(),
+      gitBranch: parsed.gitBranch ?? 'main',
+      commits: parsed.commits ?? DEFAULT_WORKSPACE_STATE.commits,
     };
   } catch {
     return cloneWorkspaceState();
@@ -466,6 +560,21 @@ const sortWorkspaceNodes = (a: WorkspaceNode, b: WorkspaceNode) => {
 
   return a.name.localeCompare(b.name);
 };
+
+const migrateWorkspaceFolder = (folder: WorkspaceFolder): WorkspaceFolder => ({
+  ...folder,
+  children: folder.children.map((node) => {
+    if (node.type === 'folder') {
+      return migrateWorkspaceFolder(node);
+    }
+
+    return {
+      ...node,
+      savedContent: node.savedContent ?? node.content,
+      gitContent: 'gitContent' in node ? node.gitContent : (node.savedContent ?? node.content),
+    };
+  }),
+});
 
 const renameFolderWithChildren = (
   folder: WorkspaceFolder,

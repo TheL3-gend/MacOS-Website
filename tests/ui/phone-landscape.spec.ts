@@ -159,6 +159,12 @@ test('chrome opens bookmarks and normalizes typed URLs', async ({ browser }) => 
   await addressInput.fill('example.com');
   await addressInput.press('Enter');
   await expect(page.getByTestId('chrome-external-frame')).toHaveAttribute('src', 'https://example.com');
+
+  await addressInput.fill('hello');
+  await addressInput.press('Enter');
+  await expect(page.getByTestId('chrome-search-page')).toContainText('hello');
+  await expect(page.getByTestId('chrome-external-frame')).toHaveCount(0);
+  await expect(page.getByTestId('chrome-blocked-fallback')).toHaveCount(0);
   await expectNoHorizontalPageOverflow(page);
 
   await context.close();

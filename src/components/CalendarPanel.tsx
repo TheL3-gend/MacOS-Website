@@ -82,13 +82,14 @@ export const CalendarPanel: React.FC<CalendarPanelProps> = ({
   return (
     <div
       data-testid="calendar-panel"
+      style={{ background: 'rgba(10, 10, 12, 0.82)' }}
       className={`rounded-2xl glass-panel-dark text-white border border-white/10 shadow-2xl flex flex-col animate-panel-in ${
         isPhoneLandscape
           ? 'w-[min(300px,calc(100vw-20px))] max-h-[calc(100dvh-48px)] overflow-y-auto p-2.5 gap-2'
           : 'w-[300px] p-3 gap-2.5'
       }`}
     >
-      <div className="flex items-center gap-3 rounded-2xl bg-white/10 dark:bg-black/25 border border-white/5 p-3">
+      <div className="flex items-center gap-3 rounded-2xl bg-white/[0.16] dark:bg-black/35 border border-white/10 p-3">
         <div className="w-9 h-9 rounded-full bg-indigo-600 text-white flex items-center justify-center">
           <CalendarDays className="w-4 h-4" />
         </div>
@@ -98,7 +99,7 @@ export const CalendarPanel: React.FC<CalendarPanelProps> = ({
         </div>
       </div>
 
-      <div className="rounded-2xl bg-white/10 dark:bg-black/25 border border-white/5 p-3">
+      <div className="rounded-2xl bg-white/[0.16] dark:bg-black/35 border border-white/10 p-3">
         <div className="flex items-center justify-between gap-2">
           <h2
             data-testid="calendar-month-title"
