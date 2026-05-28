@@ -278,17 +278,17 @@ export const SettingsApp: React.FC = () => {
   }, []);
 
   return (
-    <div className="flex h-full w-full bg-slate-50 dark:bg-zinc-950 text-slate-800 dark:text-zinc-200 select-none text-xs">
+    <div className="settings-app flex h-full w-full bg-slate-50 dark:bg-zinc-950 text-slate-800 dark:text-zinc-200 select-none text-xs">
       {/* Settings Sidebar */}
-      <div className="w-44 border-r border-slate-200 dark:border-zinc-800 bg-slate-100/50 dark:bg-zinc-900/30 p-2.5 flex flex-col gap-1 shrink-0">
-        <div className="flex items-center gap-2.5 px-2 py-1.5 rounded-lg bg-slate-200/80 dark:bg-zinc-800/80 text-blue-600 dark:text-sky-400 font-semibold w-full text-left">
+      <div className="settings-sidebar w-44 border-r border-slate-200 dark:border-zinc-800 bg-slate-100/50 dark:bg-zinc-900/30 p-2.5 flex flex-col gap-1 shrink-0">
+        <div className="settings-tab flex items-center gap-2.5 px-2 py-1.5 rounded-lg bg-slate-200/80 dark:bg-zinc-800/80 text-blue-600 dark:text-sky-400 font-semibold w-full text-left">
           <Laptop className="w-4 h-4 text-sky-500" />
           <span>System Settings</span>
         </div>
       </div>
 
       {/* Settings Details Pane */}
-      <div className="flex-1 overflow-y-auto p-5 flex flex-col gap-6">
+      <div className="settings-content flex-1 overflow-y-auto p-5 flex flex-col gap-6">
         
         {/* About This Mac section */}
         <div className="bg-slate-200/35 dark:bg-zinc-900/20 border border-slate-200/50 dark:border-zinc-800/50 rounded-xl p-4 flex flex-col sm:flex-row gap-5 items-center">

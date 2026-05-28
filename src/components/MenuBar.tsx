@@ -2,8 +2,13 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useWindowStore } from '../store/useWindowStore';
 import { Wifi, Battery, Sliders } from 'lucide-react';
 import { ControlCenter } from './ControlCenter';
+import { CalendarPanel } from './CalendarPanel';
 
-export const MenuBar: React.FC = () => {
+interface MenuBarProps {
+  isPhoneLandscape?: boolean;
+}
+
+export const MenuBar: React.FC<MenuBarProps> = ({ isPhoneLandscape = false }) => {
   const activeAppTitle = useWindowStore((state) => {
     if (!state.activeWindow) return 'Finder';
     return state.windows[state.activeWindow]?.title || 'Finder';
@@ -54,7 +59,7 @@ export const MenuBar: React.FC = () => {
   const appMenus: Record<string, string[]> = {
     Finder: ['File', 'Edit', 'View', 'Go', 'Window', 'Help'],
     Terminal: ['Shell', 'Edit', 'View', 'Window', 'Help'],
-    Safari: ['File', 'Edit', 'View', 'History', 'Bookmarks', 'Window', 'Help'],
+    Chrome: ['File', 'Edit', 'View', 'History', 'Bookmarks', 'Window', 'Help'],
     'VS Code': ['File', 'Edit', 'Selection', 'View', 'Go', 'Run', 'Terminal', 'Help'],
     'System Settings': ['File', 'Edit', 'View', 'Window', 'Help'],
     Notes: ['File', 'Edit', 'Format', 'View', 'Window', 'Help'],
@@ -65,10 +70,20 @@ export const MenuBar: React.FC = () => {
   return (
     <div
       ref={dropdownRef}
-      className="menu-bar-shell fixed top-0 left-0 right-0 h-7 text-white font-medium select-none z-30 flex items-center justify-between px-3 text-xs border-b border-white/10"
+      className={`menu-bar-shell fixed top-0 left-0 right-0 h-7 text-white font-medium select-none z-30 flex items-center justify-between border-b border-white/10 ${
+        isPhoneLandscape ? 'px-2 text-[11px]' : 'px-3 text-xs'
+      }`}
+      style={
+        isPhoneLandscape
+          ? {
+              paddingLeft: 'max(0.5rem, env(safe-area-inset-left))',
+              paddingRight: 'max(0.5rem, env(safe-area-inset-right))',
+            }
+          : undefined
+      }
     >
       {/* Left Menu Items */}
-      <div className="flex items-center gap-4 relative">
+      <div className={`flex items-center relative min-w-0 ${isPhoneLandscape ? 'gap-1.5' : 'gap-4'}`}>
         {/* Apple Logo Dropdown */}
         <div className="relative">
           <button
@@ -147,10 +162,10 @@ export const MenuBar: React.FC = () => {
         </div>
 
         {/* Active Application Name */}
-        <span className="font-bold cursor-default px-1">{activeAppTitle}</span>
+        <span className="font-bold cursor-default px-1 truncate max-w-[9rem]">{activeAppTitle}</span>
 
         {/* Application Specific Menus */}
-        <div className="hidden md:flex items-center gap-1">
+        <div className={`${isPhoneLandscape ? 'hidden' : 'hidden md:flex'} items-center gap-1`}>
           {currentMenus.map((menu) => (
             <button
               key={menu}
@@ -166,7 +181,7 @@ export const MenuBar: React.FC = () => {
       </div>
 
       {/* Right Menu Items */}
-      <div className="flex items-center gap-3.5 relative">
+      <div className={`flex items-center relative shrink-0 ${isPhoneLandscape ? 'gap-1.5' : 'gap-3.5'}`}>
         {/* Wifi Icon */}
         <button className="opacity-80 hover:opacity-100 transition-all">
           <Wifi className={`w-3.5 h-3.5 ${wifiOn ? 'text-white' : 'text-white/40'}`} />
@@ -174,13 +189,16 @@ export const MenuBar: React.FC = () => {
 
         {/* Battery Icon */}
         <div className="flex items-center gap-1 opacity-80 hover:opacity-100 transition-all cursor-default">
-          <span className="text-[10px]">100%</span>
+          <span className={`text-[10px] ${isPhoneLandscape ? 'hidden' : ''}`}>100%</span>
           <Battery className="w-4 h-4 fill-white/80 text-white" />
         </div>
 
         {/* Control Center Toggle */}
         <div className="relative">
           <button
+            type="button"
+            data-testid="menu-bar-control-center"
+            aria-label="Open Control Centre"
             onClick={() => toggleDropdown('controlCenter')}
             className={`h-7 px-2 hover:bg-white/10 rounded flex items-center transition-all ${
               activeDropdown === 'controlCenter' ? 'bg-white/10' : ''
@@ -191,15 +209,31 @@ export const MenuBar: React.FC = () => {
 
           {activeDropdown === 'controlCenter' && (
             <div className="absolute top-8 right-0 z-50">
-              <ControlCenter closeCC={() => setActiveDropdown(null)} />
+              <ControlCenter closeCC={() => setActiveDropdown(null)} isPhoneLandscape={isPhoneLandscape} />
             </div>
           )}
         </div>
 
         {/* Live Date and Time */}
-        <span className="opacity-95 text-[11px] cursor-default font-normal tracking-wide pl-1">
-          {formattedDate} {formattedTime}
-        </span>
+        <div className="relative">
+          <button
+            type="button"
+            data-testid="menu-bar-date-time"
+            aria-label="Open calendar"
+            onClick={() => toggleDropdown('calendar')}
+            className={`h-7 px-2 rounded flex items-center opacity-95 text-[11px] font-normal tracking-wide whitespace-nowrap hover:bg-white/10 transition-all ${
+              activeDropdown === 'calendar' ? 'bg-white/10' : ''
+            }`}
+          >
+            {isPhoneLandscape ? formattedTime : `${formattedDate} ${formattedTime}`}
+          </button>
+
+          {activeDropdown === 'calendar' && (
+            <div className="absolute top-8 right-0 z-50">
+              <CalendarPanel currentDate={time} isPhoneLandscape={isPhoneLandscape} />
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

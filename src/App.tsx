@@ -6,8 +6,11 @@ import { MenuBar } from './components/MenuBar';
 import { Desktop } from './components/Desktop';
 import { Dock } from './components/Dock';
 import { WallpaperBackground } from './components/WallpaperBackground';
+import { RotatePhoneOverlay } from './components/RotatePhoneOverlay';
+import { useViewportMode } from './hooks/useViewportMode';
 
 export const App: React.FC = () => {
+  const { isPhoneLike, isPortrait, isPhoneLandscape } = useViewportMode();
   const isBooted = useWindowStore((state) => state.isBooted);
   const isLocked = useWindowStore((state) => state.isLocked);
   const isDarkMode = useWindowStore((state) => state.isDarkMode);
@@ -24,8 +27,9 @@ export const App: React.FC = () => {
   const hasObservedThemeRef = React.useRef(false);
   const isUnlocking = renderLockScreen && !isLocked;
   const unlockRevealDelay = isUnlocking ? '0.45s' : '0s';
-  const dockIsHidden = isLocked || isDockHiddenForFullscreen;
+  const dockIsHidden = isLocked || (!isPhoneLandscape && isDockHiddenForFullscreen);
   const dockTranslateY = dockIsHidden ? 'calc(100% + 20px)' : '0px';
+  const shouldShowRotateOverlay = isPhoneLike && isPortrait;
 
   React.useEffect(() => {
     if (!hasObservedThemeRef.current) {
@@ -59,9 +63,12 @@ export const App: React.FC = () => {
 
   return (
     <div
-      className={`relative w-screen h-screen overflow-hidden flex flex-col font-sans select-none transition-colors duration-300 ${
+      className={`relative w-screen overflow-hidden flex flex-col font-sans select-none transition-colors duration-300 ${
         isDarkMode ? 'dark bg-zinc-950 text-zinc-100' : 'bg-slate-100 text-zinc-800'
-      } ${isThemeTransitioning ? 'theme-transitioning' : ''}`}
+      } ${isThemeTransitioning ? 'theme-transitioning' : ''} ${
+        isPhoneLandscape ? 'phone-landscape' : ''
+      }`}
+      style={{ height: '100dvh' }}
     >
       {/* Background wallpaper */}
       <WallpaperBackground wallpaperId={wallpaperId} isLocked={isLocked} />
@@ -76,7 +83,7 @@ export const App: React.FC = () => {
           transitionDelay: unlockRevealDelay,
         }}
       >
-        <MenuBar />
+        <MenuBar isPhoneLandscape={isPhoneLandscape} />
       </div>
 
       {/* Main desktop workspace */}
@@ -89,7 +96,7 @@ export const App: React.FC = () => {
           transitionDelay: unlockRevealDelay,
         }}
       >
-        <Desktop />
+        <Desktop isPhoneLandscape={isPhoneLandscape} />
       </div>
 
       {/* Dock navigation */}
@@ -97,7 +104,7 @@ export const App: React.FC = () => {
         className={`fixed bottom-0 left-0 right-0 ${
           isLocked
             ? 'opacity-0 pointer-events-none'
-            : isDockHiddenForFullscreen
+            : !isPhoneLandscape && isDockHiddenForFullscreen
               ? 'opacity-100 pointer-events-none'
               : 'opacity-100'
         }`}
@@ -109,7 +116,7 @@ export const App: React.FC = () => {
           willChange: 'transform',
         }}
       >
-        <Dock />
+        <Dock isPhoneLandscape={isPhoneLandscape} />
       </div>
 
       {/* Lock Screen Overlay */}
@@ -136,6 +143,8 @@ export const App: React.FC = () => {
         className="absolute inset-0 bg-black pointer-events-none z-50 transition-opacity duration-200"
         style={{ opacity: brightnessOverlayOpacity }}
       />
+
+      {shouldShowRotateOverlay && <RotatePhoneOverlay />}
     </div>
   );
 };

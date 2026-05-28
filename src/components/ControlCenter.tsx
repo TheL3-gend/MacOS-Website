@@ -13,9 +13,10 @@ import {
 
 interface CCProps {
   closeCC: () => void;
+  isPhoneLandscape?: boolean;
 }
 
-export const ControlCenter: React.FC<CCProps> = ({ closeCC }) => {
+export const ControlCenter: React.FC<CCProps> = ({ closeCC, isPhoneLandscape = false }) => {
   const wifiOn = useWindowStore((state) => state.wifiOn);
   const bluetoothOn = useWindowStore((state) => state.bluetoothOn);
   const isDarkMode = useWindowStore((state) => state.isDarkMode);
@@ -37,7 +38,14 @@ export const ControlCenter: React.FC<CCProps> = ({ closeCC }) => {
   };
 
   return (
-    <div className="w-[320px] p-3 rounded-2xl glass-panel-dark text-white border border-white/10 shadow-2xl flex flex-col gap-2.5 animate-panel-in">
+    <div
+      data-testid="control-center-panel"
+      className={`rounded-2xl glass-panel-dark text-white border border-white/10 shadow-2xl flex flex-col animate-panel-in ${
+        isPhoneLandscape
+          ? 'w-[min(320px,calc(100vw-20px))] max-h-[calc(100dvh-48px)] overflow-y-auto p-2.5 gap-2'
+          : 'w-[320px] p-3 gap-2.5'
+      }`}
+    >
       {/* Top Grid (Toggles & Interactive Blocks) */}
       <div className="grid grid-cols-2 gap-2.5">
         {/* Left Toggle Box (Wifi / Bluetooth / AirDrop) */}

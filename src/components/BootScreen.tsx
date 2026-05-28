@@ -36,7 +36,7 @@ export const BootScreen: React.FC<BootScreenProps> = ({ onBootComplete }) => {
   return (
     <div
       ref={containerRef}
-      className="fixed inset-0 bg-black flex flex-col items-center justify-center z-50 text-white select-none"
+      className="boot-screen fixed inset-0 bg-black flex flex-col items-center justify-center z-50 text-white select-none"
     >
       <div className="flex flex-col items-center">
         <img

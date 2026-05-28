@@ -96,7 +96,7 @@ export const LockScreen: React.FC<LockScreenProps> = ({ onUnlockComplete }) => {
 
   return (
     <div
-      className="fixed inset-0 z-40 overflow-hidden flex flex-col justify-between items-center text-white p-12 select-none"
+      className="lock-screen fixed inset-0 z-40 overflow-hidden flex flex-col justify-between items-center text-white p-12 select-none"
       style={lockScreenStyle}
       onTransitionEnd={handleTransitionEnd}
     >
@@ -124,7 +124,7 @@ export const LockScreen: React.FC<LockScreenProps> = ({ onUnlockComplete }) => {
           </svg>
         </div>
         
-        <h2 className="text-xl font-semibold select-none drop-shadow">Guest User</h2>
+        <h2 className="text-xl font-semibold select-none drop-shadow">Ilgaz C. Y.</h2>
         
         {/* Password input */}
         <form onSubmit={handleLogin} className="w-full flex items-center relative">

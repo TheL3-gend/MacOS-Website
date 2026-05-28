@@ -58,19 +58,19 @@ export const FinderApp: React.FC = () => {
   };
 
   return (
-    <div className="flex h-full w-full bg-slate-50 dark:bg-zinc-950 text-slate-800 dark:text-zinc-200 select-none">
+    <div className="finder-app flex h-full w-full bg-slate-50 dark:bg-zinc-950 text-slate-800 dark:text-zinc-200 select-none">
       {/* Finder Sidebar */}
-      <div className="w-44 border-r border-slate-200 dark:border-zinc-800 bg-slate-100/50 dark:bg-zinc-900/30 p-2.5 flex flex-col gap-4 shrink-0">
+      <div className="finder-sidebar w-44 border-r border-slate-200 dark:border-zinc-800 bg-slate-100/50 dark:bg-zinc-900/30 p-2.5 flex flex-col gap-4 shrink-0">
         <div>
-          <span className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider px-2">
+          <span className="finder-sidebar-label text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider px-2">
             Favorites
           </span>
-          <div className="flex flex-col gap-0.5 mt-1.5">
+          <div className="finder-tab-list flex flex-col gap-0.5 mt-1.5">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-xs font-medium w-full text-left transition-all ${
+                className={`finder-tab-button flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-xs font-medium w-full text-left transition-all ${
                   activeTab === tab.id
                     ? 'bg-slate-200/80 dark:bg-zinc-800/80 text-blue-600 dark:text-sky-400 font-semibold'
                     : 'hover:bg-slate-200/40 dark:hover:bg-zinc-800/40 text-slate-700 dark:text-zinc-300'
@@ -85,7 +85,7 @@ export const FinderApp: React.FC = () => {
       </div>
 
       {/* Finder Details Pane */}
-      <div className="flex-1 overflow-y-auto p-6 text-sm">
+      <div className="finder-content flex-1 overflow-y-auto p-6 text-sm">
         {/* Render content based on activeTab */}
         {activeTab === 'about' && (
           <div className="flex flex-col gap-6 max-w-xl">
@@ -155,7 +155,7 @@ export const FinderApp: React.FC = () => {
               <div className="flex flex-col gap-1 relative">
                 <div className="absolute -left-[27px] top-1.5 w-3 h-3 rounded-full bg-blue-500 border-2 border-slate-50 dark:border-zinc-950" />
                 <div className="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center">
-                  <h3 className="font-bold text-slate-900 dark:text-white text-base">Senior Frontend Architect</h3>
+                  <h3 className="font-bold text-slate-900 dark:text-white text-base">Frontend Architect</h3>
                   <span className="text-xs text-blue-600 dark:text-sky-400 font-semibold flex items-center gap-1.5 mt-1 sm:mt-0">
                     <Calendar className="w-3.5 h-3.5" /> 2024 - Present
                   </span>
@@ -165,23 +165,6 @@ export const FinderApp: React.FC = () => {
                   - Spearheaded migration of legacy dashboards to modern React + Vite layouts, achieving 40% faster render speeds.<br />
                   - Implemented reusable core UI layout system and high-performance interactive visual graphics.<br />
                   - Led a team of 4 frontend engineers setting high quality code metrics.
-                </p>
-              </div>
-
-              {/* Timeline item 2 */}
-              <div className="flex flex-col gap-1 relative mt-2">
-                <div className="absolute -left-[27px] top-1.5 w-3 h-3 rounded-full bg-slate-400 dark:bg-zinc-600 border-2 border-slate-50 dark:border-zinc-950" />
-                <div className="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center">
-                  <h3 className="font-bold text-slate-900 dark:text-white text-base">Full-Stack Engineer</h3>
-                  <span className="text-xs text-slate-500 dark:text-zinc-400 font-semibold flex items-center gap-1.5 mt-1 sm:mt-0">
-                    <Calendar className="w-3.5 h-3.5" /> 2021 - 2024
-                  </span>
-                </div>
-                <span className="text-xs text-slate-500 dark:text-zinc-400 font-medium">Digital Agency Labs</span>
-                <p className="text-slate-600 dark:text-zinc-300 mt-2 leading-relaxed text-xs">
-                  - Designed and deployed REST and GraphQL microservices in Node.js and AWS lambda serverless modules.<br />
-                  - Built responsive custom websites and desktop web views with Tailwind CSS and Next.js.<br />
-                  - Reduced API latency by 35% through Redis caching mechanisms and DB indexing optimization.
                 </p>
               </div>
             </div>
