@@ -3,11 +3,12 @@ import { useWindowStore } from '../store/useWindowStore';
 import { WindowFrame } from './WindowFrame';
 import { FinderApp } from './apps/FinderApp';
 import { TerminalApp } from './apps/TerminalApp';
-import { SafariApp } from './apps/SafariApp';
+import { ChromeApp } from './apps/ChromeApp';
 import { VSCodeApp } from './apps/VSCodeApp';
 import { NotesApp } from './apps/NotesApp';
 import { SettingsApp } from './apps/SettingsApp';
-import { Terminal, Compass, Settings, FileText, Code2, FolderOpen } from 'lucide-react';
+import { Terminal, Settings, FileText, Code2, FolderOpen } from 'lucide-react';
+import { ChromeIcon } from './icons/ChromeIcon';
 
 interface DesktopIcon {
   id: string;
@@ -77,10 +78,10 @@ export const Desktop: React.FC<DesktopProps> = ({ isPhoneLandscape = false }) =>
         icon: <Terminal className="w-5 h-5 text-green-400" />,
       },
       {
-        id: 'safari',
-        name: 'Safari',
-        bgClass: 'bg-gradient-to-b from-sky-100 to-slate-200 border border-sky-300',
-        icon: <Compass className="w-5 h-5 text-sky-600" />,
+        id: 'chrome',
+        name: 'Chrome',
+        bgClass: 'bg-gradient-to-b from-white to-slate-100 border border-slate-200',
+        icon: <ChromeIcon className="w-7 h-7" />,
       },
       {
         id: 'vscode',
@@ -325,8 +326,8 @@ export const Desktop: React.FC<DesktopProps> = ({ isPhoneLandscape = false }) =>
         <TerminalApp />
       </WindowFrame>
 
-      <WindowFrame id="safari" title="Safari" isPhoneLandscape={isPhoneLandscape}>
-        <SafariApp />
+      <WindowFrame id="chrome" title="Chrome" isPhoneLandscape={isPhoneLandscape}>
+        <ChromeApp />
       </WindowFrame>
 
       <WindowFrame id="vscode" title="VS Code" isPhoneLandscape={isPhoneLandscape}>

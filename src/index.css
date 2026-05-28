@@ -539,14 +539,14 @@ body.desktop-icon-is-dragging * {
   font-size: 0.82rem;
 }
 
-.phone-landscape .safari-toolbar {
+.phone-landscape .chrome-toolbar {
   height: 36px;
   padding-left: 8px;
   padding-right: 8px;
   gap: 6px;
 }
 
-.phone-landscape .safari-address {
+.phone-landscape .chrome-address {
   max-width: none;
   height: 24px;
   padding-left: 8px;
@@ -554,55 +554,64 @@ body.desktop-icon-is-dragging * {
   font-size: 10px;
 }
 
-.phone-landscape .safari-spacer {
-  display: none;
-}
-
-.phone-landscape .safari-tabs {
+.phone-landscape .chrome-tabs {
   height: 30px;
   overflow-x: auto;
   align-items: end;
   padding-left: 8px;
   padding-right: 8px;
+  padding-top: 4px;
 }
 
-.phone-landscape .safari-tab {
+.phone-landscape .chrome-tab {
   flex: 0 0 auto;
-  max-width: 124px;
-  padding-left: 10px;
-  padding-right: 10px;
+  max-width: 132px;
 }
 
-.phone-landscape .safari-content {
+.phone-landscape .chrome-bookmarks-bar {
+  height: 28px;
+  padding-left: 8px;
+  padding-right: 8px;
+}
+
+.phone-landscape .chrome-content {
   min-height: 0;
+}
+
+.phone-landscape .chrome-content > .p-5 {
   padding: 10px;
 }
 
-.phone-landscape .safari-project {
+.phone-landscape .chrome-start-page {
+  padding-top: 18px;
+  padding-bottom: 16px;
+}
+
+.phone-landscape .chrome-project {
   max-width: none;
   gap: 10px;
 }
 
-.phone-landscape .safari-tags {
+.phone-landscape .chrome-tags {
   flex-wrap: wrap;
   gap: 5px;
 }
 
-.phone-landscape .safari-bid-card {
+.phone-landscape .chrome-bid-card {
   padding: 12px;
   gap: 12px;
   flex-direction: row;
   align-items: stretch;
 }
 
-.phone-landscape .safari-nft {
+.phone-landscape .chrome-nft {
   width: 96px;
   height: 96px;
   padding: 10px;
   font-size: 10px;
 }
 
-.phone-landscape .safari-ai-project {
+.phone-landscape .chrome-ai-project {
   height: 100%;
   min-height: 0;
   gap: 10px;

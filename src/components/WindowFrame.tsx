@@ -18,6 +18,7 @@ const MIN_WINDOW_WIDTH = 380;
 const MIN_WINDOW_HEIGHT = 280;
 const FULLSCREEN_ANIMATION_DURATION = 0.58;
 const MINIMIZE_ANIMATION_DURATION = 0.48;
+const CLOSE_ANIMATION_DURATION = 0.26;
 
 const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
 const getDesktopBounds = () => ({
@@ -92,6 +93,9 @@ export const WindowFrame: React.FC<WindowFrameProps> = ({
   const prevMinimizedRef = useRef(false);
   const prevOpenRef = useRef(false);
   const prevMaximizedRef = useRef(false);
+  const isClosingRef = useRef(false);
+  const closeTweenRef = useRef<ReturnType<typeof gsap.to> | null>(null);
+  const [isClosing, setIsClosing] = React.useState(false);
 
   const isOpen = win?.isOpen ?? false;
   const isMinimized = win?.isMinimized ?? false;
@@ -111,11 +115,21 @@ export const WindowFrame: React.FC<WindowFrameProps> = ({
     latestSizeRef.current = size;
   }, [size]);
 
+  useEffect(() => {
+    return () => {
+      closeTweenRef.current?.kill();
+    };
+  }, []);
+
   // Window opening and minimize/restore animations
   useEffect(() => {
     if (!isOpen) {
       prevOpenRef.current = false;
       prevMinimizedRef.current = isMinimized;
+      if (isClosingRef.current) {
+        isClosingRef.current = false;
+        setIsClosing(false);
+      }
       return;
     }
 
@@ -221,6 +235,45 @@ export const WindowFrame: React.FC<WindowFrameProps> = ({
     prevMinimizedRef.current = isMinimized;
     prevOpenRef.current = isOpen;
   }, [id, isMaximized, isMinimized, isOpen, isPhoneLandscape]);
+
+  const closeWindowWithAnimation = () => {
+    if (isClosingRef.current) return;
+
+    const element = windowRef.current;
+    if (!element) {
+      closeWindow(id);
+      return;
+    }
+
+    isClosingRef.current = true;
+    setIsClosing(true);
+    gsap.killTweensOf(element);
+
+    element.style.display = 'flex';
+    element.style.pointerEvents = 'none';
+    element.style.willChange = 'transform, opacity, filter';
+
+    closeTweenRef.current = gsap.to(element, {
+      scale: isPhoneLandscape ? 0.92 : 0.78,
+      opacity: 0,
+      x: isPhoneLandscape ? 0 : -10,
+      y: isPhoneLandscape ? 10 : -18,
+      filter: 'blur(6px)',
+      transformOrigin: isPhoneLandscape ? 'center top' : '24px 20px',
+      duration: CLOSE_ANIMATION_DURATION,
+      ease: 'power2.in',
+      onComplete: () => {
+        closeTweenRef.current = null;
+        if (windowRef.current) {
+          windowRef.current.style.pointerEvents = '';
+          windowRef.current.style.willChange = '';
+        }
+        closeWindow(id);
+        isClosingRef.current = false;
+        setIsClosing(false);
+      },
+    });
+  };
 
   React.useLayoutEffect(() => {
     const element = windowRef.current;
@@ -493,10 +546,12 @@ export const WindowFrame: React.FC<WindowFrameProps> = ({
       ref={windowRef}
       data-app-window-id={id}
       style={windowStyle}
-      onClick={() => focusWindow(id)}
+      onClick={() => {
+        if (!isClosingRef.current) focusWindow(id);
+      }}
       className={`window-frame flex flex-col rounded-xl overflow-hidden glass-panel shadow-2xl transition-shadow border border-white/20 select-none ${
         isFocused ? 'ring-1 ring-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.3)]' : 'opacity-95 shadow-[0_10px_30px_rgba(0,0,0,0.15)]'
-      }`}
+      } ${isClosing ? 'pointer-events-none' : ''}`}
     >
       {/* Title Bar */}
       <div
@@ -518,7 +573,7 @@ export const WindowFrame: React.FC<WindowFrameProps> = ({
             aria-label={`Close ${title}`}
             onClick={(e) => {
               e.stopPropagation();
-              closeWindow(id);
+              closeWindowWithAnimation();
             }}
             className={`rounded-full hover:brightness-90 transition-all flex items-center justify-center text-[8px] text-red-950 font-bold group ${
               isPhoneLandscape ? 'w-8 h-8' : 'w-3.5 h-3.5 mac-traffic-red hover:brightness-75'

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useWindowStore } from '../store/useWindowStore';
 import { Wifi, Battery, Sliders } from 'lucide-react';
 import { ControlCenter } from './ControlCenter';
+import { CalendarPanel } from './CalendarPanel';
 
 interface MenuBarProps {
   isPhoneLandscape?: boolean;
@@ -58,7 +59,7 @@ export const MenuBar: React.FC<MenuBarProps> = ({ isPhoneLandscape = false }) =>
   const appMenus: Record<string, string[]> = {
     Finder: ['File', 'Edit', 'View', 'Go', 'Window', 'Help'],
     Terminal: ['Shell', 'Edit', 'View', 'Window', 'Help'],
-    Safari: ['File', 'Edit', 'View', 'History', 'Bookmarks', 'Window', 'Help'],
+    Chrome: ['File', 'Edit', 'View', 'History', 'Bookmarks', 'Window', 'Help'],
     'VS Code': ['File', 'Edit', 'Selection', 'View', 'Go', 'Run', 'Terminal', 'Help'],
     'System Settings': ['File', 'Edit', 'View', 'Window', 'Help'],
     Notes: ['File', 'Edit', 'Format', 'View', 'Window', 'Help'],
@@ -195,6 +196,9 @@ export const MenuBar: React.FC<MenuBarProps> = ({ isPhoneLandscape = false }) =>
         {/* Control Center Toggle */}
         <div className="relative">
           <button
+            type="button"
+            data-testid="menu-bar-control-center"
+            aria-label="Open Control Centre"
             onClick={() => toggleDropdown('controlCenter')}
             className={`h-7 px-2 hover:bg-white/10 rounded flex items-center transition-all ${
               activeDropdown === 'controlCenter' ? 'bg-white/10' : ''
@@ -211,9 +215,25 @@ export const MenuBar: React.FC<MenuBarProps> = ({ isPhoneLandscape = false }) =>
         </div>
 
         {/* Live Date and Time */}
-        <span className="opacity-95 text-[11px] cursor-default font-normal tracking-wide pl-1 whitespace-nowrap">
-          {isPhoneLandscape ? formattedTime : `${formattedDate} ${formattedTime}`}
-        </span>
+        <div className="relative">
+          <button
+            type="button"
+            data-testid="menu-bar-date-time"
+            aria-label="Open calendar"
+            onClick={() => toggleDropdown('calendar')}
+            className={`h-7 px-2 rounded flex items-center opacity-95 text-[11px] font-normal tracking-wide whitespace-nowrap hover:bg-white/10 transition-all ${
+              activeDropdown === 'calendar' ? 'bg-white/10' : ''
+            }`}
+          >
+            {isPhoneLandscape ? formattedTime : `${formattedDate} ${formattedTime}`}
+          </button>
+
+          {activeDropdown === 'calendar' && (
+            <div className="absolute top-8 right-0 z-50">
+              <CalendarPanel currentDate={time} isPhoneLandscape={isPhoneLandscape} />
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

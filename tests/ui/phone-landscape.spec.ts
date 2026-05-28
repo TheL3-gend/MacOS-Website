@@ -112,12 +112,13 @@ test.describe('phone landscape compact macOS layout', () => {
 
     await unlock(page);
 
-    await page.locator('[data-dock-app-id="safari"]').click();
-    await expect(page.locator('[data-app-window-id="safari"]')).toBeVisible();
-    await expect(page.locator('.safari-tabs')).toBeVisible();
+    await page.locator('[data-dock-app-id="chrome"]').click();
+    await expect(page.locator('[data-app-window-id="chrome"]')).toBeVisible();
+    await expect(page.locator('.chrome-tabs')).toBeVisible();
+    await expect(page.getByTestId('chrome-address-input')).toBeVisible();
     await expectNoHorizontalPageOverflow(page);
     await page.screenshot({
-      path: path.join(screenshotDir, 'phone-landscape-safari.png'),
+      path: path.join(screenshotDir, 'phone-landscape-chrome.png'),
     });
 
     await page.locator('[data-dock-app-id="notes"]').click();
@@ -137,6 +138,32 @@ test.describe('phone landscape compact macOS layout', () => {
   });
 });
 
+test('chrome opens bookmarks and normalizes typed URLs', async ({ browser }) => {
+  const context = await browser.newContext({
+    viewport: { width: 1440, height: 900 },
+  });
+  const page = await context.newPage();
+
+  await page.goto(appUrl);
+  await unlock(page);
+
+  await page.locator('[data-dock-app-id="chrome"]').click();
+  await expect(page.locator('[data-app-window-id="chrome"]')).toBeVisible();
+  await expect(page.locator('.chrome-tabs')).toBeVisible();
+  await expect(page.getByTestId('chrome-bookmarks-bar')).toBeVisible();
+
+  await page.getByTestId('chrome-start-bookmark-cosmic-nft').click();
+  await expect(page.locator('.chrome-content')).toContainText('Nebula-99 Collapsar NFT');
+
+  const addressInput = page.getByTestId('chrome-address-input');
+  await addressInput.fill('example.com');
+  await addressInput.press('Enter');
+  await expect(page.getByTestId('chrome-external-frame')).toHaveAttribute('src', 'https://example.com');
+  await expectNoHorizontalPageOverflow(page);
+
+  await context.close();
+});
+
 test('desktop keeps overlapping-window behavior', async ({ browser }) => {
   const context = await browser.newContext({
     viewport: { width: 1440, height: 900 },
@@ -154,6 +181,31 @@ test('desktop keeps overlapping-window behavior', async ({ browser }) => {
   await page.screenshot({
     path: path.join(screenshotDir, 'desktop-unlocked.png'),
   });
+
+  await context.close();
+});
+
+test('desktop close animates before removing the window', async ({ browser }) => {
+  const context = await browser.newContext({
+    viewport: { width: 1440, height: 900 },
+  });
+  const page = await context.newPage();
+
+  await page.goto(appUrl);
+  await unlock(page);
+
+  const finderWindow = page.locator('[data-app-window-id="finder"]');
+  await expect(finderWindow).toBeVisible();
+
+  await page.getByRole('button', { name: 'Close Finder' }).click();
+  await expect(finderWindow).toHaveCount(1);
+  await expect.poll(async () => {
+    return page.evaluate(() => {
+      const element = document.querySelector<HTMLElement>('[data-app-window-id="finder"]');
+      return element ? Number(window.getComputedStyle(element).opacity) : 0;
+    });
+  }, { timeout: 500 }).toBeLessThan(1);
+  await expect(finderWindow).toHaveCount(0, { timeout: 1_000 });
 
   await context.close();
 });

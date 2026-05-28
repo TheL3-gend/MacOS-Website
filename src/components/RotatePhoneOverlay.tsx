@@ -20,7 +20,7 @@ export const RotatePhoneOverlay: React.FC = () => {
         <div className="flex flex-col gap-2">
           <h1 className="text-2xl font-bold text-white">Rotate Your Phone</h1>
           <p className="text-sm leading-relaxed text-white/75">
-            This macOS workspace is designed for landscape on phones.
+            This macOS workspace is designed for PC's.
           </p>
         </div>
       </div>

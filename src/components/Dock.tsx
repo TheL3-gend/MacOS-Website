@@ -1,6 +1,7 @@
 import React, { useMemo, useRef } from 'react';
 import { useWindowStore } from '../store/useWindowStore';
-import { Terminal, Compass, Settings, FileText, Code2, FolderOpen } from 'lucide-react';
+import { Terminal, Settings, FileText, Code2, FolderOpen } from 'lucide-react';
+import { ChromeIcon } from './icons/ChromeIcon';
 
 interface DockItem {
   id: string;
@@ -36,12 +37,12 @@ const DOCK_ITEMS: DockItem[] = [
     ),
   },
   {
-    id: 'safari',
-    name: 'Safari',
-    bgClass: 'bg-gradient-to-b from-sky-100 to-slate-200 border border-sky-300 shadow-[0_4px_12px_rgba(56,189,248,0.2)]',
+    id: 'chrome',
+    name: 'Chrome',
+    bgClass: 'bg-gradient-to-b from-white to-slate-100 border border-slate-200 shadow-[0_4px_12px_rgba(15,23,42,0.16)]',
     icon: (
-      <div className="w-full h-full flex items-center justify-center text-sky-600">
-        <Compass className="w-6.5 h-6.5 stroke-[1.5] drop-shadow-sm" />
+      <div className="w-full h-full flex items-center justify-center">
+        <ChromeIcon className="w-8 h-8 drop-shadow-sm" />
       </div>
     ),
   },

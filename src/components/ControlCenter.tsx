@@ -39,6 +39,7 @@ export const ControlCenter: React.FC<CCProps> = ({ closeCC, isPhoneLandscape = f
 
   return (
     <div
+      data-testid="control-center-panel"
       className={`rounded-2xl glass-panel-dark text-white border border-white/10 shadow-2xl flex flex-col animate-panel-in ${
         isPhoneLandscape
           ? 'w-[min(320px,calc(100vw-20px))] max-h-[calc(100dvh-48px)] overflow-y-auto p-2.5 gap-2'

@@ -124,7 +124,7 @@ export const LockScreen: React.FC<LockScreenProps> = ({ onUnlockComplete }) => {
           </svg>
         </div>
         
-        <h2 className="text-xl font-semibold select-none drop-shadow">Guest User</h2>
+        <h2 className="text-xl font-semibold select-none drop-shadow">Ilgaz C. Y.</h2>
         
         {/* Password input */}
         <form onSubmit={handleLogin} className="w-full flex items-center relative">

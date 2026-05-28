@@ -32,9 +32,9 @@ const DEFAULT_WINDOWS: Record<string, AppWindow> = {
     size: { width: 620, height: 400 },
     zIndex: 1,
   },
-  safari: {
-    id: 'safari',
-    title: 'Safari',
+  chrome: {
+    id: 'chrome',
+    title: 'Chrome',
     isOpen: false,
     isMinimized: false,
     isMaximized: false,

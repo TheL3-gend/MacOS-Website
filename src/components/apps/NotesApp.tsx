@@ -4,7 +4,7 @@ import { FileText, Save, Info } from 'lucide-react';
 export const NotesApp: React.FC = () => {
   const [noteContent, setNoteContent] = useState<string>(() => {
     return localStorage.getItem('macos_portfolio_note') || 
-      `# Welcome to Notes!\n\nThis notepad persists your writing to local browser storage automatically.\n\nThings to check out in this MacOS Portfolio:\n1. Click "Secret" command in the Terminal.\n2. Switch Wallpapers in System Settings.\n3. Bid on the Cosmic NFT inside Safari.\n4. Explore the VS Code Editor files.\n\nEnjoy exploring!`;
+      `# Welcome to Notes!\n\nThis notepad persists your writing to local browser storage automatically.\n\nThings to check out in this MacOS Portfolio:\n1. Click "Secret" command in the Terminal.\n2. Switch Wallpapers in System Settings.\n3. Bid on the Cosmic NFT inside Chrome.\n4. Explore the VS Code Editor files.\n\nEnjoy exploring!`;
   });
 
   const [savedStatus, setSavedStatus] = useState<boolean>(false);
