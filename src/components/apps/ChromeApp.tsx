@@ -13,7 +13,7 @@ import {
   X,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
-import { ChromeIcon } from '../icons/ChromeIcon';
+import { ChromeIcon } from '../icons/appicons';
 
 interface Project {
   id: string;

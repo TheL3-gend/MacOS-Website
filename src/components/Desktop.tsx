@@ -8,7 +8,7 @@ import { VSCodeApp } from './apps/VSCodeApp';
 import { NotesApp } from './apps/NotesApp';
 import { SettingsApp } from './apps/SettingsApp';
 import { Terminal, Settings, FileText, Code2, FolderOpen, FileCode2 } from 'lucide-react';
-import { ChromeIcon } from './icons/ChromeIcon';
+import { ChromeIcon } from './icons/appicons';
 import {
   loadVirtualDesktopFiles,
   requestOpenDesktopFile,

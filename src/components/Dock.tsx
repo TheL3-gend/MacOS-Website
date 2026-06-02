@@ -1,7 +1,7 @@
 import React, { useMemo, useRef } from 'react';
 import { useWindowStore } from '../store/useWindowStore';
 import { Terminal, Settings, FileText, Code2, FolderOpen } from 'lucide-react';
-import { ChromeIcon } from './icons/ChromeIcon';
+import { ChromeIcon } from './icons/appicons';
 
 interface DockItem {
   id: string;

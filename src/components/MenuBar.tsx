@@ -56,6 +56,7 @@ export const MenuBar: React.FC<MenuBarProps> = ({ isPhoneLandscape = false }) =>
   });
 
   // App menus definition
+  const hiddenMenuLabels = new Set(['File', 'Edit', 'View', 'Go', 'Window', 'Help']);
   const appMenus: Record<string, string[]> = {
     Finder: ['File', 'Edit', 'View', 'Go', 'Window', 'Help'],
     Terminal: ['Shell', 'Edit', 'View', 'Window', 'Help'],
@@ -65,7 +66,9 @@ export const MenuBar: React.FC<MenuBarProps> = ({ isPhoneLandscape = false }) =>
     Notes: ['File', 'Edit', 'Format', 'View', 'Window', 'Help'],
   };
 
-  const currentMenus = appMenus[activeAppTitle] || ['File', 'Edit', 'View', 'Window', 'Help'];
+  const currentMenus = (appMenus[activeAppTitle] || ['File', 'Edit', 'View', 'Window', 'Help']).filter(
+    (menu) => !hiddenMenuLabels.has(menu),
+  );
 
   return (
     <div
